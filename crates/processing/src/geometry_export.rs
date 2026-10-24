@@ -29,6 +29,13 @@ use serde::Serialize;
 
 use crate::MeshData;
 
+#[derive(Debug, Clone, Serialize)]
+pub struct ExportedMaterialGroup {
+    pub triangle_start: usize,
+    pub triangle_count: usize,
+    pub color: [f32; 4],
+}
+
 /// One IFC entity's merged geometry, in IFC Z-up absolute-world metres.
 #[derive(Debug, Clone, Serialize)]
 pub struct ExportedElement {
@@ -43,6 +50,8 @@ pub struct ExportedElement {
     pub faces: Vec<[u32; 3]>,
     /// RGBA in 0..1 (first submesh's colour when an element has several).
     pub color: [f32; 4],
+    /// Material ranges in `faces`, retained after position welding.
+    pub material_groups: Vec<ExportedMaterialGroup>,
 }
 
 /// Top-level geometry-data document. Serializes to the `ifx-geometry-data`
@@ -120,11 +129,17 @@ pub fn build_geometry_data_export(
                 vertices: Vec::new(),
                 faces: Vec::new(),
                 color: m.color,
+                material_groups: Vec::new(),
             });
 
         // Merge this submesh: rebase its face indices onto the element's
         // accumulated vertex list.
         let base = entry.vertices.len() as u32;
+        entry.material_groups.push(ExportedMaterialGroup {
+            triangle_start: entry.faces.len(),
+            triangle_count: m.indices.len() / 3,
+            color: m.color,
+        });
         entry.vertices.extend_from_slice(&verts);
         entry.faces.extend(
             m.indices
@@ -138,7 +153,13 @@ pub fn build_geometry_data_export(
     // reads as "open". Merging by position (1 um grid) yields a properly
     // indexed solid so closed-mesh consumers (volume, watertightness) work.
     for el in elements.values_mut() {
-        let (v, f) = weld_positions(&el.vertices, &el.faces, 1.0e-6);
+        let (v, f, retained) = weld_positions(&el.vertices, &el.faces, 1.0e-6);
+        for group in &mut el.material_groups {
+            let start = retained[group.triangle_start];
+            group.triangle_count = retained[group.triangle_start + group.triangle_count] - start;
+            group.triangle_start = start;
+        }
+        el.material_groups.retain(|group| group.triangle_count > 0);
         el.vertices = v;
         el.faces = f;
     }
@@ -161,7 +182,7 @@ fn weld_positions(
     verts: &[[f64; 3]],
     faces: &[[u32; 3]],
     eps: f64,
-) -> (Vec<[f64; 3]>, Vec<[u32; 3]>) {
+) -> (Vec<[f64; 3]>, Vec<[u32; 3]>, Vec<usize>) {
     let inv = 1.0 / eps;
     let key = |v: &[f64; 3]| -> (i64, i64, i64) {
         (
@@ -182,6 +203,8 @@ fn weld_positions(
         remap.push(idx);
     }
     let mut out_faces: Vec<[u32; 3]> = Vec::with_capacity(faces.len());
+    let mut retained = Vec::with_capacity(faces.len() + 1);
+    retained.push(0);
     for f in faces {
         let (a, b, c) = (
             remap[f[0] as usize],
@@ -191,8 +214,9 @@ fn weld_positions(
         if a != b && b != c && a != c {
             out_faces.push([a, b, c]);
         }
+        retained.push(out_faces.len());
     }
-    (out_verts, out_faces)
+    (out_verts, out_faces, retained)
 }
 
 impl GeometryDataExport {
@@ -204,5 +228,45 @@ impl GeometryDataExport {
     /// Serialize to compact JSON.
     pub fn to_json(&self) -> Result<String, serde_json::Error> {
         serde_json::to_string(self)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn material_ranges_follow_surviving_faces_after_welding() {
+        let part = |color, indices| {
+            MeshData::new(
+                7,
+                "IfcWindow".into(),
+                vec![0., 0., 0., 1., 0., 0., 0., 1., 0., 0., 0., 0.],
+                vec![0.; 12],
+                indices,
+                color,
+            )
+        };
+        let white = [0.9, 0.9, 0.9, 1.];
+        let glass = [0.1, 0.1, 0.1, 0.12];
+        let export = build_geometry_data_export(
+            &[
+                part(white, vec![0, 1, 2, 0, 3, 1]),
+                part(glass, vec![0, 3, 2, 0, 2, 1]),
+            ],
+            [0.; 3],
+            None,
+        );
+        let window = &export.elements[&7];
+        assert_eq!(window.vertices.len(), 3);
+        assert_eq!(window.faces.len(), 2);
+        assert_eq!(window.material_groups.len(), 2);
+        for (i, color) in [white, glass].into_iter().enumerate() {
+            let group = &window.material_groups[i];
+            assert_eq!(group.triangle_start, i);
+            assert_eq!(group.triangle_count, 1);
+            assert_eq!(group.color, color);
+        }
+        assert_eq!(window.color, white);
     }
 }
