@@ -1,0 +1,46 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+[package]
+name = "ifx-processing"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Shared IFC processing pipeline and types used by server and FFI"
+keywords = ["ifc", "bim", "geometry", "pipeline", "aec"]
+categories = ["parsing", "algorithms"]
+readme = "../../README.md"
+autotests = false
+autoexamples = false
+
+[features]
+# Measurement-only: enable the geometry crate's CSG corpus capture so the
+# `csg_scaling_bench` example can replay real void-cut jobs. See
+# rust/processing/examples/csg_scaling_bench.rs.
+csg-capture = ["ifx-geometry/csg_capture"]
+# Structured diagnostics in the geometry crate: routes its production
+# warn/debug messages through `tracing` (this crate already depends on
+# tracing unconditionally, so the flag only affects ifx-geometry).
+# Enabled by the native server; default OFF keeps wasm/default builds
+# byte-identical.
+observability = ["ifx-geometry/observability"]
+
+
+[dependencies]
+ifx-step = { path = "../step" }
+# CSG runs on the pure-Rust exact kernel inside ifx-geometry on every
+# target (the Manifold C++ kernel was removed in the kernel consolidation —
+# see docs/architecture/geometry-pipeline.md).
+ifx-geometry = { path = "../geometry", default-features = false }
+rayon = "1.10"
+serde = { version = "1.0", features = ["derive", "rc"] }
+serde_json = "1.0"
+memchr = "2.8"
+rustc-hash = "2.1"
+tracing = "0.1"
+
+[lints]
+workspace = true

@@ -1,0 +1,1285 @@
+{
+  "project": "IFC-Lite",
+  "repository": "https://github.com/LTplus-AG/ifc-lite",
+  "tag": "ifclite-geom-v4.4.0",
+  "commit": "9c17d7db44ff603f02ce7952d67ded05daabd120",
+  "license": "MPL-2.0",
+  "changes": [
+    "Renamed local Rust crates and imports to IFX.",
+    "Kept the entity model; omitted unrelated format exporters.",
+    "Added serialization to shared entity and unit types.",
+    "Changed geometry document identifier to ifx-geometry-data."
+  ],
+  "files": [
+    {
+      "upstream": "rust/core/src/step_encoding.rs",
+      "path": "crates/step/src/step_encoding.rs",
+      "sha256": "14ef77a1e9598486ec3453e55dccb7e35051f7a13266d9b5045b76be56199bcf"
+    },
+    {
+      "upstream": "rust/core/src/fast_parse.rs",
+      "path": "crates/step/src/fast_parse.rs",
+      "sha256": "79097a105296836fb9b2572d93f48ff32969bc55bf278fbff143d9b545255578"
+    },
+    {
+      "upstream": "rust/core/src/georef_tests.rs",
+      "path": "crates/step/src/georef_tests.rs",
+      "sha256": "2b79cdbaa7ddda674835380000cc0f60ccfb828128e103be87174c9d4139b5ab"
+    },
+    {
+      "upstream": "rust/core/src/error.rs",
+      "path": "crates/step/src/error.rs",
+      "sha256": "6092c0a40ae8bef3f75f5e784aa15e3a596d1ca0a8991871475a0d13e05043f9"
+    },
+    {
+      "upstream": "rust/core/src/units.rs",
+      "path": "crates/step/src/units.rs",
+      "sha256": "4cdbade8e920b92f04a5b8e39d1a7c8add7f874e00299f6dc46138216c0e0890"
+    },
+    {
+      "upstream": "rust/core/src/columnar_index.rs",
+      "path": "crates/step/src/columnar_index.rs",
+      "sha256": "b45f4f3aca84ebac316226474b661fe7710f994e3640d33428ba0dcad8652b5f"
+    },
+    {
+      "upstream": "rust/core/src/lib.rs",
+      "path": "crates/step/src/lib.rs",
+      "sha256": "262ff63146b5b0ce02b409838b998873060d4a358d252b30e05660eed76bac7b"
+    },
+    {
+      "upstream": "rust/core/src/schema_gen_tests.rs",
+      "path": "crates/step/src/schema_gen_tests.rs",
+      "sha256": "6776cb9cd8a732b289f8591a7845a755e75e2f17a3b1a9f9c7f9259a692f2c10"
+    },
+    {
+      "upstream": "rust/core/src/decoder.rs",
+      "path": "crates/step/src/decoder.rs",
+      "sha256": "c5a499c529812eac36e450a2424c52d63c5a10b8d195eac84502eb04e3f7e888"
+    },
+    {
+      "upstream": "rust/core/src/georef.rs",
+      "path": "crates/step/src/georef.rs",
+      "sha256": "972e7ef87dd55e41cff6cf089a5ca21e2c9f076c081e587f7e0d7ad420e6b1ee"
+    },
+    {
+      "upstream": "rust/core/src/legacy_entities.rs",
+      "path": "crates/step/src/legacy_entities.rs",
+      "sha256": "abdc79aca56e6b223daa695fbec4062c0758161d9091116a15f6fca89e390e2b"
+    },
+    {
+      "upstream": "rust/core/src/model_bounds.rs",
+      "path": "crates/step/src/model_bounds.rs",
+      "sha256": "d669f51fd20233223f1e7ed71a0ff43b752b2324217abfaa4dfd26fcd8cbffac"
+    },
+    {
+      "upstream": "rust/core/src/schema_helpers.rs",
+      "path": "crates/step/src/schema_helpers.rs",
+      "sha256": "e09e65c0e11041674b407f7cd9d2416d8803768bc9e8479a9d05e000897f1b3b"
+    },
+    {
+      "upstream": "rust/core/src/schema_gen.rs",
+      "path": "crates/step/src/schema_gen.rs",
+      "sha256": "fd8c9a15ba73ff4dc9134fb8fb4fb63293a237eaeef1f8dd76d7d49fceb6bd63"
+    },
+    {
+      "upstream": "rust/core/src/streaming.rs",
+      "path": "crates/step/src/streaming.rs",
+      "sha256": "e6879d57b51ec30b44d89055370a28b8a7810a75dd695fad258e50762f2a9f47"
+    },
+    {
+      "upstream": "rust/core/src/schema_helpers_tests.rs",
+      "path": "crates/step/src/schema_helpers_tests.rs",
+      "sha256": "580385c5968bd0694644e01a5e246cbb7835414d20d7cbdcd7b1f18e82e2a922"
+    },
+    {
+      "upstream": "rust/core/src/fast_parse_tests.rs",
+      "path": "crates/step/src/fast_parse_tests.rs",
+      "sha256": "f0877f38fce282bc4c49761382d200f7434337f24bc8c6c16634a43e7f1a8370"
+    },
+    {
+      "upstream": "rust/core/src/generated/mod.rs",
+      "path": "crates/step/src/generated/mod.rs",
+      "sha256": "9583803fe4de6a4caadc948b0e3beb60cda76fb73d23ab122745ed7c52297816"
+    },
+    {
+      "upstream": "rust/core/src/generated/schema.rs",
+      "path": "crates/step/src/generated/schema.rs",
+      "sha256": "b9e74377a5361446b2794f43058c70db68164935e2366b6acbf1edd3527c7e17"
+    },
+    {
+      "upstream": "rust/core/src/generated/type_ids.rs",
+      "path": "crates/step/src/generated/type_ids.rs",
+      "sha256": "352e8f32d2ee7efddb50ed7dea8809f119260e391d917a0f87bf39e475e5bb57"
+    },
+    {
+      "upstream": "rust/core/src/project_units/measure.rs",
+      "path": "crates/step/src/project_units/measure.rs",
+      "sha256": "839881cdc43e7ca09b11fd1ee2ea063bfa24445699fa10deb8fa9acac308a6b3"
+    },
+    {
+      "upstream": "rust/core/src/project_units/mod.rs",
+      "path": "crates/step/src/project_units/mod.rs",
+      "sha256": "9f83e4e3584c78101b620cc61c19f1b243beb6e7d39082c353bc16d9fb16e209"
+    },
+    {
+      "upstream": "rust/core/src/project_units/tests.rs",
+      "path": "crates/step/src/project_units/tests.rs",
+      "sha256": "933b512f989fdc5d6c3e0545041bc0ed2846ef42e892366c30716987e62f5b99"
+    },
+    {
+      "upstream": "rust/core/src/project_units/symbols.rs",
+      "path": "crates/step/src/project_units/symbols.rs",
+      "sha256": "2f39f32f9f95fe0d94e3b3ebdc215ec61602a55a96c23819214b53c493f0aa91"
+    },
+    {
+      "upstream": "rust/core/src/decoder/caches.rs",
+      "path": "crates/step/src/decoder/caches.rs",
+      "sha256": "f105e0233546b4449d59f76849438140037477d6f56b5948db2a5723406af83f"
+    },
+    {
+      "upstream": "rust/core/src/decoder/decoder_tests.rs",
+      "path": "crates/step/src/decoder/decoder_tests.rs",
+      "sha256": "a9fb72edd18902cac6428c1dc7ac20c4300619c3e73cd884bd500c5d285a0b48"
+    },
+    {
+      "upstream": "rust/core/src/parser/scanner.rs",
+      "path": "crates/step/src/parser/scanner.rs",
+      "sha256": "c8690d89d65e484b6b77fd0d4220ce90ebfce2d89cfb1dfdb82d2d496ce02e1b"
+    },
+    {
+      "upstream": "rust/core/src/parser/mod.rs",
+      "path": "crates/step/src/parser/mod.rs",
+      "sha256": "d352e27813724061bc9d2d8be003c51aa66bc975be78161f87ca4a8ec3f2e80e"
+    },
+    {
+      "upstream": "rust/core/src/parser/tokenizer.rs",
+      "path": "crates/step/src/parser/tokenizer.rs",
+      "sha256": "2ee47d739fb34037c38b5d81155f32eda68de509d7abffc28681a77dc2c84632"
+    },
+    {
+      "upstream": "rust/geometry/src/rect_fast.rs",
+      "path": "crates/geometry/src/rect_fast.rs",
+      "sha256": "dc421bd5db086221a96030057e77ca1da3c84f3d092e52520361b6f040b56f83"
+    },
+    {
+      "upstream": "rust/geometry/src/mesh_orient_tests.rs",
+      "path": "crates/geometry/src/mesh_orient_tests.rs",
+      "sha256": "7c5942fdb5331465e234d21ff576aa0ee7437f30c720eb81aaa3b7a116380d86"
+    },
+    {
+      "upstream": "rust/geometry/src/facet_weld_scoped_tests.rs",
+      "path": "crates/geometry/src/facet_weld_scoped_tests.rs",
+      "sha256": "d823dc74dca1c3b5a4231c508f679bb7494ad664709d22fba17d03efd62c5cc8"
+    },
+    {
+      "upstream": "rust/geometry/src/extrusion.rs",
+      "path": "crates/geometry/src/extrusion.rs",
+      "sha256": "aed332400ce0d54680868714caa382d03575bc52657a115c8778640c716e5e4d"
+    },
+    {
+      "upstream": "rust/geometry/src/tessellation.rs",
+      "path": "crates/geometry/src/tessellation.rs",
+      "sha256": "d43b9fa5ae095fb9c6dd72881296314d242f2549d2f87bdf4ffb6526060eec52"
+    },
+    {
+      "upstream": "rust/geometry/src/contour_bool2d.rs",
+      "path": "crates/geometry/src/contour_bool2d.rs",
+      "sha256": "9f43fe3d01f5cb6fd3f52e9d2dc7c9f31671a05ea8bf2709f8453320a8d1370b"
+    },
+    {
+      "upstream": "rust/geometry/src/cdt.rs",
+      "path": "crates/geometry/src/cdt.rs",
+      "sha256": "8e979a8c7430a5ec9709efc11196c79eb12829f22f2e19472af160319a0f0059"
+    },
+    {
+      "upstream": "rust/geometry/src/void_index.rs",
+      "path": "crates/geometry/src/void_index.rs",
+      "sha256": "1b1f31c30d082511ccb4a047dd663be4a3f44b733ef7bb0a5a8e20f5f0b68da4"
+    },
+    {
+      "upstream": "rust/geometry/src/mesh.rs",
+      "path": "crates/geometry/src/mesh.rs",
+      "sha256": "f2bf672afa58adb60bb6598ddf0c8bd05a9fbd9757a635b56f2f1a615077bfd2"
+    },
+    {
+      "upstream": "rust/geometry/src/geom_hash_tests.rs",
+      "path": "crates/geometry/src/geom_hash_tests.rs",
+      "sha256": "670053250501bef7d35ec1964aba71a8759ffcb928fb968bc0111324fc5bc215"
+    },
+    {
+      "upstream": "rust/geometry/src/bool2d_tests.rs",
+      "path": "crates/geometry/src/bool2d_tests.rs",
+      "sha256": "de5b42ca555a9e8f2c31eb37e8ede6feeb12a28a6c4b9c792b0613f374c3080a"
+    },
+    {
+      "upstream": "rust/geometry/src/diagnostics.rs",
+      "path": "crates/geometry/src/diagnostics.rs",
+      "sha256": "fcf62abeaef9f3ee2ef4b649a967030edae9aac3d0c92255309127f7faac3afb"
+    },
+    {
+      "upstream": "rust/geometry/src/material_layer_index.rs",
+      "path": "crates/geometry/src/material_layer_index.rs",
+      "sha256": "bdc14bf2cef1eb4b4aabebc50ee9bd223a13e7c85427b33d5a0eb963842e8575"
+    },
+    {
+      "upstream": "rust/geometry/src/projection_outline.rs",
+      "path": "crates/geometry/src/projection_outline.rs",
+      "sha256": "bd4105f09f2eb05be9c3090b344e0d0bc18490f54a86bff4c91f99cf8e4b1f92"
+    },
+    {
+      "upstream": "rust/geometry/src/profile.rs",
+      "path": "crates/geometry/src/profile.rs",
+      "sha256": "5442af29c1b740c2c54a7897d59872ea38495c873f4e38ab0d082565d47389e1"
+    },
+    {
+      "upstream": "rust/geometry/src/scalar.rs",
+      "path": "crates/geometry/src/scalar.rs",
+      "sha256": "5acd548d8e94a1a677826e2813c7cf731abf30568237d0abd4cd78e98556a21f"
+    },
+    {
+      "upstream": "rust/geometry/src/error.rs",
+      "path": "crates/geometry/src/error.rs",
+      "sha256": "8920377f317df2fd1703a539dede1e29f564ddab5e60b4174d7dde26d979f53e"
+    },
+    {
+      "upstream": "rust/geometry/src/extrusion_watertight_tests.rs",
+      "path": "crates/geometry/src/extrusion_watertight_tests.rs",
+      "sha256": "a39c73bd045c97e14f74e77e4dde997c0610e8c38bad506b29d4ca227269f621"
+    },
+    {
+      "upstream": "rust/geometry/src/cdt_tests.rs",
+      "path": "crates/geometry/src/cdt_tests.rs",
+      "sha256": "d18d1ea9dfdf7f46fe3deb37bbc576e2509a229acf8490b556b6040da09ff3ee"
+    },
+    {
+      "upstream": "rust/geometry/src/alignment.rs",
+      "path": "crates/geometry/src/alignment.rs",
+      "sha256": "83b7d6c44625f459177f3cceec00f8edee49650320b5e6f6385ea6de08cf58d4"
+    },
+    {
+      "upstream": "rust/geometry/src/lib.rs",
+      "path": "crates/geometry/src/lib.rs",
+      "sha256": "4e26f31bb1fedb40b0b41f334882b72da3430237412d90d6136875084614ef80"
+    },
+    {
+      "upstream": "rust/geometry/src/mesh_weld.rs",
+      "path": "crates/geometry/src/mesh_weld.rs",
+      "sha256": "a7a7d64d887201df1daf277f9a90da9975dad3bee484b6a80bbd6fc6e0b3fb0c"
+    },
+    {
+      "upstream": "rust/geometry/src/geom_bounds.rs",
+      "path": "crates/geometry/src/geom_bounds.rs",
+      "sha256": "834e329fa2f9f49c800da9c855be92c4d8e629f06adafc95253a0115f15730c0"
+    },
+    {
+      "upstream": "rust/geometry/src/geom_closure.rs",
+      "path": "crates/geometry/src/geom_closure.rs",
+      "sha256": "f12e2fe32d094419f492dfd80bf0ec3d98866b9555ba0c8675576da3599a355e"
+    },
+    {
+      "upstream": "rust/geometry/src/grid.rs",
+      "path": "crates/geometry/src/grid.rs",
+      "sha256": "cf4f89c7e60eaa8d177870de63d66fdc4f24a69dce5ad45d35667189f789211d"
+    },
+    {
+      "upstream": "rust/geometry/src/bool2d.rs",
+      "path": "crates/geometry/src/bool2d.rs",
+      "sha256": "3e9afbd10cc29dea084069e853ecd95b216fa947628280e6872ac4fd12497b0a"
+    },
+    {
+      "upstream": "rust/geometry/src/mesh_orient.rs",
+      "path": "crates/geometry/src/mesh_orient.rs",
+      "sha256": "a97798d09152a9a62e20fea6f924c3632d608bed50407579816b2afd8e57e09e"
+    },
+    {
+      "upstream": "rust/geometry/src/contour_bool2d_tests.rs",
+      "path": "crates/geometry/src/contour_bool2d_tests.rs",
+      "sha256": "2fdc2c0344bec227521f87e9ac6841a687956c362235ad97ad7eef92c17e9752"
+    },
+    {
+      "upstream": "rust/geometry/src/csg_capture.rs",
+      "path": "crates/geometry/src/csg_capture.rs",
+      "sha256": "c3874c2c08053dbbc17b2d70a2ab928f285988924b5e820f9ee53be9edb8bc67"
+    },
+    {
+      "upstream": "rust/geometry/src/triangulation.rs",
+      "path": "crates/geometry/src/triangulation.rs",
+      "sha256": "17a1bc78aca39ee489aab44ee4b1707db4c5308b2231feefe9fed2fc6d90902f"
+    },
+    {
+      "upstream": "rust/geometry/src/geom_hash.rs",
+      "path": "crates/geometry/src/geom_hash.rs",
+      "sha256": "e800ceeff16ce584d23641e6d2cb36b499b20f34bf8d57649e13c56a611723b9"
+    },
+    {
+      "upstream": "rust/geometry/src/extrusion_byte_identity_tests.rs",
+      "path": "crates/geometry/src/extrusion_byte_identity_tests.rs",
+      "sha256": "6a9c2ebec4573d979f5a4f7d7c1dcddfa96a916de53a0048d9f6349f656d76c2"
+    },
+    {
+      "upstream": "rust/geometry/src/transform.rs",
+      "path": "crates/geometry/src/transform.rs",
+      "sha256": "a8281f4df4aa281565ca31f077aea9bbc60ec08c065d1b0416a6aced0abe9789"
+    },
+    {
+      "upstream": "rust/geometry/src/extrusion_generic.rs",
+      "path": "crates/geometry/src/extrusion_generic.rs",
+      "sha256": "2d5b935490f702d2af403ccf0575be43338c44413dbd0e56793185d7a8d87cd8"
+    },
+    {
+      "upstream": "rust/geometry/src/diag.rs",
+      "path": "crates/geometry/src/diag.rs",
+      "sha256": "db4a1346f99af3ee23597116e95a807df0f7b77080010ca955eda4b30d510efd"
+    },
+    {
+      "upstream": "rust/geometry/src/b44_kernel_adjoint_tests.rs",
+      "path": "crates/geometry/src/b44_kernel_adjoint_tests.rs",
+      "sha256": "63fe1d7265546de43f5c226462f4d7f6faae0c525787143709ac6fa1c3840816"
+    },
+    {
+      "upstream": "rust/geometry/src/facet_weld.rs",
+      "path": "crates/geometry/src/facet_weld.rs",
+      "sha256": "9cea5d9a948a8cf1374f50e7c820d55abe7aa9611b09e6b81dbc10c1482b4edb"
+    },
+    {
+      "upstream": "rust/geometry/src/profile_extractor.rs",
+      "path": "crates/geometry/src/profile_extractor.rs",
+      "sha256": "d602e88bcb956929e0d047a60d610b8a77a85c880206a998c3398f683a2e268a"
+    },
+    {
+      "upstream": "rust/geometry/src/profile_generic.rs",
+      "path": "crates/geometry/src/profile_generic.rs",
+      "sha256": "adcc352a757261ee1304ed985606d5a7ff599b99563ad1d64eb18c6f18a817c9"
+    },
+    {
+      "upstream": "rust/geometry/src/mesh_weld_tests.rs",
+      "path": "crates/geometry/src/mesh_weld_tests.rs",
+      "sha256": "1898cd379211815ad0bbe778b1c470d0c8b30013ba766daa36279669bc7528dc"
+    },
+    {
+      "upstream": "rust/geometry/src/space_dcel/arrangement.rs",
+      "path": "crates/geometry/src/space_dcel/arrangement.rs",
+      "sha256": "9627d276cbbc31ffebafab833a9d057a46cb4f9555792de822c474c4beeeab53"
+    },
+    {
+      "upstream": "rust/geometry/src/space_dcel/mod.rs",
+      "path": "crates/geometry/src/space_dcel/mod.rs",
+      "sha256": "5d421bf520a6fb7fb747471995ef2683bab27b99e540eadd24d0207e71f5fe71"
+    },
+    {
+      "upstream": "rust/geometry/src/space_dcel/tests.rs",
+      "path": "crates/geometry/src/space_dcel/tests.rs",
+      "sha256": "ce8655501435aeb2ef5299637ac1134d670c135897894a4f4fe569e3d5b0781e"
+    },
+    {
+      "upstream": "rust/geometry/src/space_dcel/geom2d.rs",
+      "path": "crates/geometry/src/space_dcel/geom2d.rs",
+      "sha256": "23f6afe13455c7cf62044153758e1802c81d56e1270fda38e8c437e43f5ff4ae"
+    },
+    {
+      "upstream": "rust/geometry/src/csg/consolidate.rs",
+      "path": "crates/geometry/src/csg/consolidate.rs",
+      "sha256": "6d9947e9fa47db353471ecbc840c3954d0e649a4a48021a502e86e6c7eaf7e21"
+    },
+    {
+      "upstream": "rust/geometry/src/csg/normals.rs",
+      "path": "crates/geometry/src/csg/normals.rs",
+      "sha256": "d1e8b750173d0762b9a41ed4e1807b3fc4f999a9781b53ffb8b5edaf4a282533"
+    },
+    {
+      "upstream": "rust/geometry/src/csg/csg_tests.rs",
+      "path": "crates/geometry/src/csg/csg_tests.rs",
+      "sha256": "713e860251ec3b08b6e7f590288d2ed78f0c46715a47e96feac03bdb7c76c58b"
+    },
+    {
+      "upstream": "rust/geometry/src/csg/mod.rs",
+      "path": "crates/geometry/src/csg/mod.rs",
+      "sha256": "b079766332060a02c8540f56d15aef044136bf1dff86d3b3026f75f5fa4aea7d"
+    },
+    {
+      "upstream": "rust/geometry/src/csg/consolidate/ring_ops.rs",
+      "path": "crates/geometry/src/csg/consolidate/ring_ops.rs",
+      "sha256": "4ff4881aefcfd6c54c7aceed44a19586d1604fbeba2061f16f41cdae15a1f99f"
+    },
+    {
+      "upstream": "rust/geometry/src/csg/consolidate/conform.rs",
+      "path": "crates/geometry/src/csg/consolidate/conform.rs",
+      "sha256": "a6977fb4327cb809a4097f76a0c68fb0985a0acfc5199311ca90df3eea8d1f20"
+    },
+    {
+      "upstream": "rust/geometry/src/csg/consolidate/conform/emit.rs",
+      "path": "crates/geometry/src/csg/consolidate/conform/emit.rs",
+      "sha256": "543c23d51620ce2f3db6f24b80b760cd803c5aecf527f5a8d81783f476a59e2e"
+    },
+    {
+      "upstream": "rust/geometry/src/instancing/collate.rs",
+      "path": "crates/geometry/src/instancing/collate.rs",
+      "sha256": "152e98a6f75947819f9d1849042f1adb70bfa9e16d1cad765cee7c06b47ed703"
+    },
+    {
+      "upstream": "rust/geometry/src/instancing/mod.rs",
+      "path": "crates/geometry/src/instancing/mod.rs",
+      "sha256": "b92a7a26c8bd8225712de8fe9f0bed23b4ffe424dae2b8e388ed2fb95dc5d31a"
+    },
+    {
+      "upstream": "rust/geometry/src/instancing/tests.rs",
+      "path": "crates/geometry/src/instancing/tests.rs",
+      "sha256": "62d69dacbb09d90a08a1b0feb9fe600c68707bae7a666535c0d3ac78741e0ff5"
+    },
+    {
+      "upstream": "rust/geometry/src/instancing/wire.rs",
+      "path": "crates/geometry/src/instancing/wire.rs",
+      "sha256": "b2632940c81c038cb941313ab0ddc5f6063482e6d8dfb99a30edab7c6c360192"
+    },
+    {
+      "upstream": "rust/geometry/src/cdt/predicates.rs",
+      "path": "crates/geometry/src/cdt/predicates.rs",
+      "sha256": "020586ee634416da702d1b516226898493757012ebfd3ac66351468b451cef24"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/sectioned.rs",
+      "path": "crates/geometry/src/processors/sectioned.rs",
+      "sha256": "31c8ece1d9d215f9b40b4924a71bf1d0f1be03c153481b802cd6f2316b37cf2a"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/extrusion.rs",
+      "path": "crates/geometry/src/processors/extrusion.rs",
+      "sha256": "19f4d31e173ecc907c22f5987943df419b6fed64e2abcaa3c85869d78ff321ae"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/extrusion_tapered.rs",
+      "path": "crates/geometry/src/processors/extrusion_tapered.rs",
+      "sha256": "f15dcf1a83cd1b667716ab16719618bcafcb671c7da95ccdebd7aa1654151d26"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/csg_primitive.rs",
+      "path": "crates/geometry/src/processors/csg_primitive.rs",
+      "sha256": "3de39c65754ff597938a5c13621cc3f2b0875622f3a3308f7ef66b1829f53472"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/alignment.rs",
+      "path": "crates/geometry/src/processors/alignment.rs",
+      "sha256": "55beb13b4dab8a6564749040485c7a2ed98443b9c0f83f8752bae8f9f324b549"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/advanced.rs",
+      "path": "crates/geometry/src/processors/advanced.rs",
+      "sha256": "9aa20fb2011f68ce60011f16c2f982d5e30e397189aff466b820a6069a3a8edf"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/surface.rs",
+      "path": "crates/geometry/src/processors/surface.rs",
+      "sha256": "56f19ee3803dd37fb27265f98871d03e7a1e46e8c9d44d7561a4261ec0d9b361"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/helpers.rs",
+      "path": "crates/geometry/src/processors/helpers.rs",
+      "sha256": "d5b5057251a1f1b174cb9e8f799b076471fd552ea0149e1c4020e1519f2749db"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/mod.rs",
+      "path": "crates/geometry/src/processors/mod.rs",
+      "sha256": "6d5b751edce6f05590caf83439ac8271f692b19b278af98e10130cf04d727db0"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/tests.rs",
+      "path": "crates/geometry/src/processors/tests.rs",
+      "sha256": "491e6dfa58611839c23d5ff9215762517500a3642c00529e9c3724070d97c227"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/brep/faceted.rs",
+      "path": "crates/geometry/src/processors/brep/faceted.rs",
+      "sha256": "13219d0cc53a53c5cd2e6efaaf077a06412d2d76aa822c60a9c08add6f9f7d80"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/brep/mod.rs",
+      "path": "crates/geometry/src/processors/brep/mod.rs",
+      "sha256": "bf2524e9b08ecf97f93a77db3a5bee4d322f38dee63873801cc53fa1f8567849"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/brep/surface_model.rs",
+      "path": "crates/geometry/src/processors/brep/surface_model.rs",
+      "sha256": "46cb51bdd4b96be415947ebbfe3ef55b5c4501be56c979c42607709b2861d552"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/tessellated/polygonal.rs",
+      "path": "crates/geometry/src/processors/tessellated/polygonal.rs",
+      "sha256": "7a17b47444e12a5e30dbf02a11216e21b3c76957ef539b71c66384a861d1f3e0"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/tessellated/mesh_build.rs",
+      "path": "crates/geometry/src/processors/tessellated/mesh_build.rs",
+      "sha256": "3bb72c14eb8a6146e5d580e62945c5dc13b17eb3efa0006bcbd105e76fdab84e"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/tessellated/mod.rs",
+      "path": "crates/geometry/src/processors/tessellated/mod.rs",
+      "sha256": "0fc1dd34961271ccf6e70ac71a222e04993bbb2954c095f87a811d03711e9c90"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/tessellated/triangulated.rs",
+      "path": "crates/geometry/src/processors/tessellated/triangulated.rs",
+      "sha256": "60b7883b2c5d4cd40d51c07bd80264776cbb4c027b12350df792447e39ad8dcb"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/tessellated/triangulate.rs",
+      "path": "crates/geometry/src/processors/tessellated/triangulate.rs",
+      "sha256": "3276a7c5916a1f868191a94d874fe8afdfe89645669b6f8170f35acca1be68e7"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/swept/revolved.rs",
+      "path": "crates/geometry/src/processors/swept/revolved.rs",
+      "sha256": "f4cd76f6ce3d86015ba765b8fb6ec06319cbfb5f59565564428ed41c166de9dd"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/swept/disk.rs",
+      "path": "crates/geometry/src/processors/swept/disk.rs",
+      "sha256": "5342d3f475e63956734d2b3a9d2ca389d74d2d6d3478cf59d9e0875d69b31350"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/swept/mod.rs",
+      "path": "crates/geometry/src/processors/swept/mod.rs",
+      "sha256": "8c1c89ed8d3885723c8b1527a1e21e021a53a7cb87cb35b53134c169d27adfab"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/swept/surface_curve.rs",
+      "path": "crates/geometry/src/processors/swept/surface_curve.rs",
+      "sha256": "44605408024a290c4d356324e70ff8fc687bc53092f555bcb10e2b10131d9112"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/boolean/cut_heuristics.rs",
+      "path": "crates/geometry/src/processors/boolean/cut_heuristics.rs",
+      "sha256": "f5995bb757db0fdb2f8d4504e9b712679359d70ad0a0ca1871e858546eace08d"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/boolean/mod.rs",
+      "path": "crates/geometry/src/processors/boolean/mod.rs",
+      "sha256": "1c7aae559c7b5f68c68905b7e20f8324a9001844fad19454ff5bd62be98db0a2"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/boolean/polygonal_prism.rs",
+      "path": "crates/geometry/src/processors/boolean/polygonal_prism.rs",
+      "sha256": "ffee7a61856b08d3c4cb3ed6fe546af1932985ab79035a1828e7c2df5fb930ad"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/boolean/halfspace_cap_tests.rs",
+      "path": "crates/geometry/src/processors/boolean/halfspace_cap_tests.rs",
+      "sha256": "35a687f939a69c066a95f478944b53d8b39af0f52cc8559b71b933af0e327167"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/boolean/chain_cycle_tests.rs",
+      "path": "crates/geometry/src/processors/boolean/chain_cycle_tests.rs",
+      "sha256": "c2dde484a6d5b7ac1180ba77673102b9deca8d5dcc3d2aabcdcfa5efe1f66483"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/boolean/halfspace_cap.rs",
+      "path": "crates/geometry/src/processors/boolean/halfspace_cap.rs",
+      "sha256": "4c5d47bffd1bc2c7ff95c7129924a9ad607dc8ff0d349a46f44abbd9642b0572"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/texture/mod.rs",
+      "path": "crates/geometry/src/processors/texture/mod.rs",
+      "sha256": "39d0b7525a5740adebb1f435bd38ea8ce913850c5884ffa0c81839998ca437f5"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/texture/raster.rs",
+      "path": "crates/geometry/src/processors/texture/raster.rs",
+      "sha256": "3d249c9e3f777e72c5df1e659b2f529998d0d098eb09817eac0d95e50ec189d0"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/advanced_face/edge_loop.rs",
+      "path": "crates/geometry/src/processors/advanced_face/edge_loop.rs",
+      "sha256": "71a303a96af6d2ed5471cb12e82191cd82eedd690f1daf8b143c200c3fe3ad45"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/advanced_face/surfaces.rs",
+      "path": "crates/geometry/src/processors/advanced_face/surfaces.rs",
+      "sha256": "a249c8822241e60a9bbba55129506a1b9e4af3fff17a2238f2bdcbf32af442a9"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/advanced_face/bspline.rs",
+      "path": "crates/geometry/src/processors/advanced_face/bspline.rs",
+      "sha256": "0d6b4b7b5a2f4556288a653d1b2696a54ebae012ea44ad1661cd23204c8d87aa"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/advanced_face/revolution.rs",
+      "path": "crates/geometry/src/processors/advanced_face/revolution.rs",
+      "sha256": "32899618e7694d51d129083dfa22009e3aeaaf2e64490c30693d91504c946e48"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/advanced_face/mod.rs",
+      "path": "crates/geometry/src/processors/advanced_face/mod.rs",
+      "sha256": "05748ca1de809eecab939aec6c14d032f94d404e3566f0840af8cd6aebc86d6c"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/advanced_face/curves.rs",
+      "path": "crates/geometry/src/processors/advanced_face/curves.rs",
+      "sha256": "d254ff103aa3dc131ab86834cf2e37d8087f0163cc01ff70cf9ebbd9f34872d4"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/advanced_face/polyline.rs",
+      "path": "crates/geometry/src/processors/advanced_face/polyline.rs",
+      "sha256": "1d918e70353c2cd1660ff91f5cb0656f0e3c20fc40ecd3d8e8675dda13792fb9"
+    },
+    {
+      "upstream": "rust/geometry/src/processors/advanced_face/conics.rs",
+      "path": "crates/geometry/src/processors/advanced_face/conics.rs",
+      "sha256": "4ada9d3b294dbb075372d7effc3eb3a5d6bf758699cdc311b73af544cbfa382c"
+    },
+    {
+      "upstream": "rust/geometry/src/triangulation/alt_oracle.rs",
+      "path": "crates/geometry/src/triangulation/alt_oracle.rs",
+      "sha256": "9f9e6aae699557ba89f399f1709a1d1df95bc57defaa1f75725a192c88bf8078"
+    },
+    {
+      "upstream": "rust/geometry/src/triangulation/ring_geom.rs",
+      "path": "crates/geometry/src/triangulation/ring_geom.rs",
+      "sha256": "9deafad621fe1992d4563bee7b69bc02b406aa2f09d359a6b8221c0badc65199"
+    },
+    {
+      "upstream": "rust/geometry/src/profiles/shapes.rs",
+      "path": "crates/geometry/src/profiles/shapes.rs",
+      "sha256": "b399c0539c3356e53f94e34ae7bd895c0c94634251aa0e6b6bfd36770a5b0934"
+    },
+    {
+      "upstream": "rust/geometry/src/profiles/simplify.rs",
+      "path": "crates/geometry/src/profiles/simplify.rs",
+      "sha256": "9a34d3f5b1ca196a3954545c9510073f0c46d4c29d5628ce0af13a2f7b3deb32"
+    },
+    {
+      "upstream": "rust/geometry/src/profiles/curves_2d.rs",
+      "path": "crates/geometry/src/profiles/curves_2d.rs",
+      "sha256": "13c785e6952d4dd6f9b47ee243cea3831f98237ea1bfe25e3ff67ba157c2c865"
+    },
+    {
+      "upstream": "rust/geometry/src/profiles/curves_3d.rs",
+      "path": "crates/geometry/src/profiles/curves_3d.rs",
+      "sha256": "fe9b54342fba51e750715c80f1914ed67b9d146efbdd12223c7fa1a08dc4c804"
+    },
+    {
+      "upstream": "rust/geometry/src/profiles/mod.rs",
+      "path": "crates/geometry/src/profiles/mod.rs",
+      "sha256": "5d81b4c3d8dd1d487d13fec88910cf415b91b50ec0c5d63f9f1dabe9417c52ed"
+    },
+    {
+      "upstream": "rust/geometry/src/profiles/placement.rs",
+      "path": "crates/geometry/src/profiles/placement.rs",
+      "sha256": "64d898845e0246dc051d4333a1460644fc3078ffb3029d1e5d4fc4db9e4f891b"
+    },
+    {
+      "upstream": "rust/geometry/src/profiles/tests.rs",
+      "path": "crates/geometry/src/profiles/tests.rs",
+      "sha256": "cfe3f4e5d44b5fcab9dfcb27caa951affb2579c4f166a06145bef485446d52b7"
+    },
+    {
+      "upstream": "rust/geometry/src/profiles/steel_shapes.rs",
+      "path": "crates/geometry/src/profiles/steel_shapes.rs",
+      "sha256": "b9d78dabce621a3e61d83da069de903d417b05b08a5c877492a24e06b97b7a0e"
+    },
+    {
+      "upstream": "rust/geometry/src/profiles/simplify_tests.rs",
+      "path": "crates/geometry/src/profiles/simplify_tests.rs",
+      "sha256": "be257db64c7379d6454e76efaf149722ceee1e9ddca596e14bc1331813b4cf47"
+    },
+    {
+      "upstream": "rust/geometry/src/profiles/outline.rs",
+      "path": "crates/geometry/src/profiles/outline.rs",
+      "sha256": "2f2aaf54c7f9c732a4edff0809449e17571a00af410487333f7fb61892924a3f"
+    },
+    {
+      "upstream": "rust/geometry/src/simplify/boxify.rs",
+      "path": "crates/geometry/src/simplify/boxify.rs",
+      "sha256": "b32b93a1de986df928a76c48d82fcdf321282c74573d0499495b794f0cfc83b9"
+    },
+    {
+      "upstream": "rust/geometry/src/simplify/cavities.rs",
+      "path": "crates/geometry/src/simplify/cavities.rs",
+      "sha256": "e0043ab0155588b182ddc77046dcea8d605453afea8cb47c2ff3474aadd6c8f3"
+    },
+    {
+      "upstream": "rust/geometry/src/simplify/ray_parity.rs",
+      "path": "crates/geometry/src/simplify/ray_parity.rs",
+      "sha256": "88ce37ef0660e4c32d6bdcd643984476f89fe8a8cf6fce173aa14b8bb8d4c317"
+    },
+    {
+      "upstream": "rust/geometry/src/simplify/mod.rs",
+      "path": "crates/geometry/src/simplify/mod.rs",
+      "sha256": "ca8ac0e797a25bd0b10a94438e73a23b7db1902f21e50d2200fab3eb623201f8"
+    },
+    {
+      "upstream": "rust/geometry/src/simplify/cluster.rs",
+      "path": "crates/geometry/src/simplify/cluster.rs",
+      "sha256": "263ab0dd3113b99eb4254101afcc7303abb97f212c49a3cb009605ba26dc730a"
+    },
+    {
+      "upstream": "rust/geometry/src/kernel/mesh_bridge.rs",
+      "path": "crates/geometry/src/kernel/mesh_bridge.rs",
+      "sha256": "d348a37db920120bf8e7462a1cd26445ab5a6a3ddb3dfc9e9118f6f35d54ce82"
+    },
+    {
+      "upstream": "rust/geometry/src/kernel/budget.rs",
+      "path": "crates/geometry/src/kernel/budget.rs",
+      "sha256": "ca72421348fed13240475735b0642db3ba0563b60027f95f97c3595bc9c17f1b"
+    },
+    {
+      "upstream": "rust/geometry/src/kernel/fixed.rs",
+      "path": "crates/geometry/src/kernel/fixed.rs",
+      "sha256": "3b8b14e8c8cb63141385021cbd1b529740e05b4fcaf2f04ae147c7c7c3b1b797"
+    },
+    {
+      "upstream": "rust/geometry/src/kernel/retriangulate.rs",
+      "path": "crates/geometry/src/kernel/retriangulate.rs",
+      "sha256": "189d08bcd8737638277edd0504a0d125184f46372b01d5bc8762fe737c0407cd"
+    },
+    {
+      "upstream": "rust/geometry/src/kernel/coplanar.rs",
+      "path": "crates/geometry/src/kernel/coplanar.rs",
+      "sha256": "33af0c9e6f8cba66afee82f74647980c882eddd81e0aca204f2388bb68919b11"
+    },
+    {
+      "upstream": "rust/geometry/src/kernel/signed_volume.rs",
+      "path": "crates/geometry/src/kernel/signed_volume.rs",
+      "sha256": "c3c27405e0376512bbc5687753c30326e67d02c2969f03c557b12f27fff33d75"
+    },
+    {
+      "upstream": "rust/geometry/src/kernel/rational.rs",
+      "path": "crates/geometry/src/kernel/rational.rs",
+      "sha256": "d2b878bfe25e3e30d8bee973f9c11f368e481e621f19f3ca696b2c4761af55a8"
+    },
+    {
+      "upstream": "rust/geometry/src/kernel/manifest.rs",
+      "path": "crates/geometry/src/kernel/manifest.rs",
+      "sha256": "8348ad66e850bd311be672a73a77a9b96ecaec80853f408f14e77d8945ff7444"
+    },
+    {
+      "upstream": "rust/geometry/src/kernel/interval.rs",
+      "path": "crates/geometry/src/kernel/interval.rs",
+      "sha256": "b30ca8aa7eecc6d54b30ff9ed50341a2ac3c3cc0d3407b8ed1af2d364127d648"
+    },
+    {
+      "upstream": "rust/geometry/src/kernel/tritri.rs",
+      "path": "crates/geometry/src/kernel/tritri.rs",
+      "sha256": "883f04e7d95e161d08c7ad133e0fc80e7bf64ea378e0fa153fd7f1e2cc9c1413"
+    },
+    {
+      "upstream": "rust/geometry/src/kernel/rational_tests.rs",
+      "path": "crates/geometry/src/kernel/rational_tests.rs",
+      "sha256": "b495cd5c681bac78472158c510050738748738a90790b559b9a6cd6f612a70a1"
+    },
+    {
+      "upstream": "rust/geometry/src/kernel/predicates.rs",
+      "path": "crates/geometry/src/kernel/predicates.rs",
+      "sha256": "391ca8c068cc68e626b1e346894aa1f5dc7e15fbda9400078a5dfefa416099e5"
+    },
+    {
+      "upstream": "rust/geometry/src/kernel/retriangulate_recover.rs",
+      "path": "crates/geometry/src/kernel/retriangulate_recover.rs",
+      "sha256": "80e37283c7d565f7c42e3d52406139917596b72b4dca8c52c24f57c879cda031"
+    },
+    {
+      "upstream": "rust/geometry/src/kernel/mod.rs",
+      "path": "crates/geometry/src/kernel/mod.rs",
+      "sha256": "74dba5eda93c7ce7bf3f9eb3384d71efbc7bf917747d80bd3a78d79a4b46a853"
+    },
+    {
+      "upstream": "rust/geometry/src/kernel/interner.rs",
+      "path": "crates/geometry/src/kernel/interner.rs",
+      "sha256": "81b8d46bc02bacf25f001648f304a90f736716d02c34b6c34515092ab7697380"
+    },
+    {
+      "upstream": "rust/geometry/src/kernel/broadphase.rs",
+      "path": "crates/geometry/src/kernel/broadphase.rs",
+      "sha256": "1bb2ef70eb85f0ab5e1ca56ab0baaa6b4d483096171e9dc1e73533bb7752797f"
+    },
+    {
+      "upstream": "rust/geometry/src/kernel/retriangulate_audit.rs",
+      "path": "crates/geometry/src/kernel/retriangulate_audit.rs",
+      "sha256": "27bf0e832435bd36f7adac886eeb7ae6addd36b3e70cc65fbb2e2b05afe71c02"
+    },
+    {
+      "upstream": "rust/geometry/src/kernel/retriangulate_audit_tests.rs",
+      "path": "crates/geometry/src/kernel/retriangulate_audit_tests.rs",
+      "sha256": "7be3de26624c5eec8b893f2771b0dec99b7f4628e162aec9986319c6860d451e"
+    },
+    {
+      "upstream": "rust/geometry/src/kernel/retriangulate_recover_tests.rs",
+      "path": "crates/geometry/src/kernel/retriangulate_recover_tests.rs",
+      "sha256": "61d565c8c7f4d6984fd90f98944e3f2ac758dc4096b9593ae752412c0a72acab"
+    },
+    {
+      "upstream": "rust/geometry/src/kernel/retriangulate_cleanup.rs",
+      "path": "crates/geometry/src/kernel/retriangulate_cleanup.rs",
+      "sha256": "ff42dcb0d52ffdf968efd50084cb851cd80b7f20c429851f6c0a741b958167a0"
+    },
+    {
+      "upstream": "rust/geometry/src/kernel/arrangement/boolean.rs",
+      "path": "crates/geometry/src/kernel/arrangement/boolean.rs",
+      "sha256": "daaf7f98c71ac8e513a8199a723603814ad87cc08017e91176eee7eda330e912"
+    },
+    {
+      "upstream": "rust/geometry/src/kernel/arrangement/classify.rs",
+      "path": "crates/geometry/src/kernel/arrangement/classify.rs",
+      "sha256": "585e9b16e509935a9ada789304fa71390553a90aa3c53259d672d734a03582ce"
+    },
+    {
+      "upstream": "rust/geometry/src/kernel/arrangement/mod.rs",
+      "path": "crates/geometry/src/kernel/arrangement/mod.rs",
+      "sha256": "e0301560beff371ba477e4d08f64f12a0a41a89df1ab910fa3ab525434ad6f0c"
+    },
+    {
+      "upstream": "rust/geometry/src/kernel/arrangement/tests.rs",
+      "path": "crates/geometry/src/kernel/arrangement/tests.rs",
+      "sha256": "86abb7857c11bec292056658feda28445216dcf4b5c97f4eb90a255db6f8ac77"
+    },
+    {
+      "upstream": "rust/geometry/src/kernel/fixed_int/mod.rs",
+      "path": "crates/geometry/src/kernel/fixed_int/mod.rs",
+      "sha256": "dd0b68544fbbc6f3f6a0bb8f4ada66d4e3a491480f6b614cd87619b0c070dfee"
+    },
+    {
+      "upstream": "rust/geometry/src/kernel/fixed_int/tests.rs",
+      "path": "crates/geometry/src/kernel/fixed_int/tests.rs",
+      "sha256": "41e434b5a075f55275a25a9575689cc37d0fc5cfcf190c94a295db9621db4bad"
+    },
+    {
+      "upstream": "rust/geometry/src/kernel/fixed_int/mul.rs",
+      "path": "crates/geometry/src/kernel/fixed_int/mul.rs",
+      "sha256": "124e4ff1a81baa94d468090fd2e018b7dd54221e1cf708b60a28bcdea7883a29"
+    },
+    {
+      "upstream": "rust/geometry/src/router/diagnostics.rs",
+      "path": "crates/geometry/src/router/diagnostics.rs",
+      "sha256": "f0d4c55debe1e1cf1b509eefb94c7894f0400233d8bb5e9329525575a0476fdf"
+    },
+    {
+      "upstream": "rust/geometry/src/router/instancing.rs",
+      "path": "crates/geometry/src/router/instancing.rs",
+      "sha256": "52fdb3398a28bab2f22ad2904357d5314d1fded64abfba1a3ad0612fec651777"
+    },
+    {
+      "upstream": "rust/geometry/src/router/rtc_offset.rs",
+      "path": "crates/geometry/src/router/rtc_offset.rs",
+      "sha256": "be990fa2085353453689fd0f6356b6bea538a344cd6d65d4673e322128dceaaa"
+    },
+    {
+      "upstream": "rust/geometry/src/router/mod.rs",
+      "path": "crates/geometry/src/router/mod.rs",
+      "sha256": "ac645073f3874f0d694a2da912a2fc2caafa20de047d3fc8248c2df7edcf4765"
+    },
+    {
+      "upstream": "rust/geometry/src/router/processing.rs",
+      "path": "crates/geometry/src/router/processing.rs",
+      "sha256": "2f9a21c73c1bc37bc16f12c4d426c5e42ac1c5f9d86698616a8cdc204698f245"
+    },
+    {
+      "upstream": "rust/geometry/src/router/layers.rs",
+      "path": "crates/geometry/src/router/layers.rs",
+      "sha256": "ea678fb54e045c7ba2908a411a7d7f9fcc9f89c332c87580b229f43ff4d02bfa"
+    },
+    {
+      "upstream": "rust/geometry/src/router/tests.rs",
+      "path": "crates/geometry/src/router/tests.rs",
+      "sha256": "f7e0cba62941a938f05370ed0cb43ac1ef96128e5ad9f8ccd66015b8c027f846"
+    },
+    {
+      "upstream": "rust/geometry/src/router/content_hash.rs",
+      "path": "crates/geometry/src/router/content_hash.rs",
+      "sha256": "9a1d4004d4c29fbf3d0fae5c6ddec14a4c1ff20779414fdcf2e03242fe475e4d"
+    },
+    {
+      "upstream": "rust/geometry/src/router/textured.rs",
+      "path": "crates/geometry/src/router/textured.rs",
+      "sha256": "a957fc3483614f321805959a1c9177f7bd10c7957b6ef812008d27f20cb81491"
+    },
+    {
+      "upstream": "rust/geometry/src/router/rep_filter.rs",
+      "path": "crates/geometry/src/router/rep_filter.rs",
+      "sha256": "a33f556b3c4b06b95251e4510f18f6f78e2e1d3d354a038220f14deefb50a63b"
+    },
+    {
+      "upstream": "rust/geometry/src/router/caching.rs",
+      "path": "crates/geometry/src/router/caching.rs",
+      "sha256": "f5abc9c98d8c7828e6e3abdb6afb9f4dae3a604d8e83b1d2c5c56e9cf43b7c16"
+    },
+    {
+      "upstream": "rust/geometry/src/router/voids/probe_tests.rs",
+      "path": "crates/geometry/src/router/voids/probe_tests.rs",
+      "sha256": "9a28be520f8a41c4fbbb09e27f16ffcdef65e3a11341865722c23e658be41688"
+    },
+    {
+      "upstream": "rust/geometry/src/router/voids/geom.rs",
+      "path": "crates/geometry/src/router/voids/geom.rs",
+      "sha256": "d88fac3cd5bc8b7fd3c8c0ddf84071ead603e6d7b478016687413733d1d79447"
+    },
+    {
+      "upstream": "rust/geometry/src/router/voids/aabb_clip.rs",
+      "path": "crates/geometry/src/router/voids/aabb_clip.rs",
+      "sha256": "2b43e5eb4b8869028901704cad348875ed8e0923d58906219b4c90a2c472c890"
+    },
+    {
+      "upstream": "rust/geometry/src/router/voids/coaxial_union.rs",
+      "path": "crates/geometry/src/router/voids/coaxial_union.rs",
+      "sha256": "b2a9ca10f8522c643d258cfd1434579355dddde429b11825b3124f04b16bf50b"
+    },
+    {
+      "upstream": "rust/geometry/src/router/voids/reveal_tests.rs",
+      "path": "crates/geometry/src/router/voids/reveal_tests.rs",
+      "sha256": "aa3cc0d6722625eb332c7c7ccfcf190f8cf1fcca418945e56e83c1c34b964811"
+    },
+    {
+      "upstream": "rust/geometry/src/router/voids/bool2d_path.rs",
+      "path": "crates/geometry/src/router/voids/bool2d_path.rs",
+      "sha256": "7f70ff055c39cd06124d7c4dc616d1cf026b5ec3569e6144764214019202932c"
+    },
+    {
+      "upstream": "rust/geometry/src/router/voids/prism_cut.rs",
+      "path": "crates/geometry/src/router/voids/prism_cut.rs",
+      "sha256": "800c609c7132ede1652ebaccfa69ae6b82395842b63433e6a880a26060b87d57"
+    },
+    {
+      "upstream": "rust/geometry/src/router/voids/mod.rs",
+      "path": "crates/geometry/src/router/voids/mod.rs",
+      "sha256": "c1370dd30108f3ca56ec30480726340a34ce68863ae71a03e4036247b9d0dee4"
+    },
+    {
+      "upstream": "rust/geometry/src/router/voids/synthesis.rs",
+      "path": "crates/geometry/src/router/voids/synthesis.rs",
+      "sha256": "2c146bc06c21b3fbc7cd2bb8f5def30ffedc6d9d8c6cebe64f7d831f4ece418e"
+    },
+    {
+      "upstream": "rust/geometry/src/router/voids/synthesis_tests.rs",
+      "path": "crates/geometry/src/router/voids/synthesis_tests.rs",
+      "sha256": "758ec873f93d07281a2914bcea09a1d987d88b24670fefa3955619e4cc2d0c15"
+    },
+    {
+      "upstream": "rust/geometry/src/router/voids/bool2d_path_tests.rs",
+      "path": "crates/geometry/src/router/voids/bool2d_path_tests.rs",
+      "sha256": "d27c689ecd39f5eecbd99b6c79f74cf89f9e1456bb695253176926cb5010a21f"
+    },
+    {
+      "upstream": "rust/geometry/src/router/voids/prism_cut_tests.rs",
+      "path": "crates/geometry/src/router/voids/prism_cut_tests.rs",
+      "sha256": "010d48964bc666c213c5798d143cbbdd23bb1b5d7ef2a9f9de4e2a9b3c8a2d21"
+    },
+    {
+      "upstream": "rust/geometry/src/router/voids/flap_clip_tests.rs",
+      "path": "crates/geometry/src/router/voids/flap_clip_tests.rs",
+      "sha256": "8a2a0707a45ac013d23d64a62b56e37309148eb30affedf9972df4dde6edb2c0"
+    },
+    {
+      "upstream": "rust/geometry/src/router/voids/probe.rs",
+      "path": "crates/geometry/src/router/voids/probe.rs",
+      "sha256": "f1aca3919722e7cd45eacd3c30aa37dc8912dff137db44dc6ac43490960821e9"
+    },
+    {
+      "upstream": "rust/geometry/src/router/voids/sweep_tests.rs",
+      "path": "crates/geometry/src/router/voids/sweep_tests.rs",
+      "sha256": "f996840c5072c1cdd15763ea93d199a4dafc4156266176a6cbd6e702ac0cc83b"
+    },
+    {
+      "upstream": "rust/geometry/src/router/voids/sweep.rs",
+      "path": "crates/geometry/src/router/voids/sweep.rs",
+      "sha256": "f0632005fd551b0581cf678c7ad977415328717eaeb7ad63e2b043e877a5d759"
+    },
+    {
+      "upstream": "rust/geometry/src/router/voids/coaxial_union_tests.rs",
+      "path": "crates/geometry/src/router/voids/coaxial_union_tests.rs",
+      "sha256": "b35d2827e782a9202a9b0f20ce857e9680823ca83835b49359548bdd2f95d0c5"
+    },
+    {
+      "upstream": "rust/geometry/src/router/voids/prism_cut/closure_checks.rs",
+      "path": "crates/geometry/src/router/voids/prism_cut/closure_checks.rs",
+      "sha256": "673d93f02e70b86559356ef1c335677179b6f2aa066ab57dc77266a2e1137932"
+    },
+    {
+      "upstream": "rust/geometry/src/router/voids/prism_cut/vertex_dedup.rs",
+      "path": "crates/geometry/src/router/voids/prism_cut/vertex_dedup.rs",
+      "sha256": "d6db1bdfbd8438824be1fdf952fe26edba8f8879d039582753e5e3e05fd60d22"
+    },
+    {
+      "upstream": "rust/geometry/src/router/transforms/parsers.rs",
+      "path": "crates/geometry/src/router/transforms/parsers.rs",
+      "sha256": "2a9068a63e87a41e89dbb7da8bfbe64be2b91444dbffc856cb0d4be812449125"
+    },
+    {
+      "upstream": "rust/geometry/src/router/transforms/operator.rs",
+      "path": "crates/geometry/src/router/transforms/operator.rs",
+      "sha256": "1a0478be2eda854de4c20f9d360a970e8624647f0352bc8002667e0262c2234b"
+    },
+    {
+      "upstream": "rust/geometry/src/router/transforms/linear.rs",
+      "path": "crates/geometry/src/router/transforms/linear.rs",
+      "sha256": "1937ebb01d6f71eabda78d98a3a34fbbb55dbebc24fe4cfa47864ee331a9ea66"
+    },
+    {
+      "upstream": "rust/geometry/src/router/transforms/mesh_world.rs",
+      "path": "crates/geometry/src/router/transforms/mesh_world.rs",
+      "sha256": "e9cc8bace6bce95e95a419e112681c58a58acb35fde96258bd67fb21c3535057"
+    },
+    {
+      "upstream": "rust/geometry/src/router/transforms/grid.rs",
+      "path": "crates/geometry/src/router/transforms/grid.rs",
+      "sha256": "b5d353920cb12904b0b66c88f97eccfc004e41015c7adac461330790036fa34a"
+    },
+    {
+      "upstream": "rust/geometry/src/router/transforms/mapped.rs",
+      "path": "crates/geometry/src/router/transforms/mapped.rs",
+      "sha256": "25c8c3170a00ff9591c907da69ab35524782b312e30cf7aac529552e4c224eea"
+    },
+    {
+      "upstream": "rust/geometry/src/router/transforms/mod.rs",
+      "path": "crates/geometry/src/router/transforms/mod.rs",
+      "sha256": "5354945566a0f3bf8bddf3fa4b7d2ae6266e776b7dc26e4a3af34b69d1d3083f"
+    },
+    {
+      "upstream": "rust/geometry/src/router/diagnostics/diagnostics_contract_tests.rs",
+      "path": "crates/geometry/src/router/diagnostics/diagnostics_contract_tests.rs",
+      "sha256": "751fbc3adf2a76c650987594a055eb60a057e08d4788692f4e6078098148972b"
+    },
+    {
+      "upstream": "rust/processing/src/element.rs",
+      "path": "crates/processing/src/element.rs",
+      "sha256": "710cc56873d26176ea20e55acfdbeef6e3200231de6ac9c606a785821802debf"
+    },
+    {
+      "upstream": "rust/processing/src/element_degenerate.rs",
+      "path": "crates/processing/src/element_degenerate.rs",
+      "sha256": "c63d8bdd4e85afe1a2eb914d3212af79efeb46c66a0f3ea870d2788a1c11fdfd"
+    },
+    {
+      "upstream": "rust/processing/src/pipeline_diagnostics.rs",
+      "path": "crates/processing/src/pipeline_diagnostics.rs",
+      "sha256": "44634eae23e66c23a32996c7ce5eeaed082c28f1a7da3b8dbf5cac45952358a5"
+    },
+    {
+      "upstream": "rust/processing/src/determinism.rs",
+      "path": "crates/processing/src/determinism.rs",
+      "sha256": "80bf5ff67662f2f2a0916787751dad222e6a27732432e76ebc60adfad1c672d1"
+    },
+    {
+      "upstream": "rust/processing/src/determinism_tests.rs",
+      "path": "crates/processing/src/determinism_tests.rs",
+      "sha256": "58616a24183a319c2b04afe4ee9ada6dd660a15e99deedd02777fc21f14b2e71"
+    },
+    {
+      "upstream": "rust/processing/src/stream_meta_tests.rs",
+      "path": "crates/processing/src/stream_meta_tests.rs",
+      "sha256": "95cb2d4884a58218c62c15df5d92320f321f9912814af9d1a2f85d79e08b14df"
+    },
+    {
+      "upstream": "rust/processing/src/lib.rs",
+      "path": "crates/processing/src/lib.rs",
+      "sha256": "3974da438ebe1e59b5ab215f139e034e83908cd938cb03b5d555586a85ddf53b"
+    },
+    {
+      "upstream": "rust/processing/src/stream_meta.rs",
+      "path": "crates/processing/src/stream_meta.rs",
+      "sha256": "8bb6cef59c95178da38c3a96691fecf89401a7a29a5f64d99a5b16d7495cbb0d"
+    },
+    {
+      "upstream": "rust/processing/src/prepass_styled.rs",
+      "path": "crates/processing/src/prepass_styled.rs",
+      "sha256": "e12b65df750ea18e5b8a7b27c8afd91a0fc52a2c45c45b559bc8926d3df704d5"
+    },
+    {
+      "upstream": "rust/processing/src/simplify_session.rs",
+      "path": "crates/processing/src/simplify_session.rs",
+      "sha256": "a0a52a37fb3f129275f57b18d0df9bc1f9e25c40721533726b6d8b3690664654"
+    },
+    {
+      "upstream": "rust/processing/src/geometry_export.rs",
+      "path": "crates/processing/src/geometry_export.rs",
+      "sha256": "6a98cedaf617f7b78c86064bfa79b56d699a1d037aa84166b90cae05057613b6"
+    },
+    {
+      "upstream": "rust/processing/src/simplify_math.rs",
+      "path": "crates/processing/src/simplify_math.rs",
+      "sha256": "3765cfab24c520c5057d46b83ea2b342a6babcc883f57d36660d8df3a403df24"
+    },
+    {
+      "upstream": "rust/processing/src/georeferencing.rs",
+      "path": "crates/processing/src/georeferencing.rs",
+      "sha256": "f13386fb2fa2aecc19576fc05cd582de4099c05722f25af1bc124a0253d55d22"
+    },
+    {
+      "upstream": "rust/processing/src/element_tests.rs",
+      "path": "crates/processing/src/element_tests.rs",
+      "sha256": "4e552ef3f02a12730e7a81f2798af426eb23c5506e9d3fe202a3380e35b34021"
+    },
+    {
+      "upstream": "rust/processing/src/parallel_scan.rs",
+      "path": "crates/processing/src/parallel_scan.rs",
+      "sha256": "51c6be6ad06c1b88bd4cea592ddcfdc83375dcbe935da0f6c18226baca24b6d1"
+    },
+    {
+      "upstream": "rust/processing/src/prepass.rs",
+      "path": "crates/processing/src/prepass.rs",
+      "sha256": "a37eefe5a41f87516a9a922bc8b671f7a5117ea8a714681b04dcb7e361dffda4"
+    },
+    {
+      "upstream": "rust/processing/src/simplify_session_tests.rs",
+      "path": "crates/processing/src/simplify_session_tests.rs",
+      "sha256": "90624459506beecc1aabee4165c25e7c7757df0ac513736e8386c51baf7ff72f"
+    },
+    {
+      "upstream": "rust/processing/src/shard_classes.rs",
+      "path": "crates/processing/src/shard_classes.rs",
+      "sha256": "700d44b443cd4987bafcfbca6f117ffe4b90066eef8892d2cdb8a978d9f87ffa"
+    },
+    {
+      "upstream": "rust/processing/src/types/response.rs",
+      "path": "crates/processing/src/types/response.rs",
+      "sha256": "9af63f9eaf5475d64b272aca3357197ff69d9f875f30db55cfb50dd9d5c4daa0"
+    },
+    {
+      "upstream": "rust/processing/src/types/mesh.rs",
+      "path": "crates/processing/src/types/mesh.rs",
+      "sha256": "75e24c719caec76157079a343b12bedcd3d794fccd6ab803980ac44e00c124ec"
+    },
+    {
+      "upstream": "rust/processing/src/types/mod.rs",
+      "path": "crates/processing/src/types/mod.rs",
+      "sha256": "739f84cfa1e1fe97240ec01a12579f877205842e9d540b4fb36eb825e5cbaeca"
+    },
+    {
+      "upstream": "rust/processing/src/processor/instancing.rs",
+      "path": "crates/processing/src/processor/instancing.rs",
+      "sha256": "ca93816ce48462db417e43516aba354cf2cd83e7a05d6712a55398778c1aabd1"
+    },
+    {
+      "upstream": "rust/processing/src/processor/properties.rs",
+      "path": "crates/processing/src/processor/properties.rs",
+      "sha256": "11d33dfe99009800d67c1092a3a88217fa45ffe1594b9ad0a08204a7e4304573"
+    },
+    {
+      "upstream": "rust/processing/src/processor/site_local.rs",
+      "path": "crates/processing/src/processor/site_local.rs",
+      "sha256": "161658393b798c0170f30fbb35710d444f889e9332f5ce9343fbb02a3e28e901"
+    },
+    {
+      "upstream": "rust/processing/src/processor/mod.rs",
+      "path": "crates/processing/src/processor/mod.rs",
+      "sha256": "781fe7a81d8ec4728d4ed967ee69334d7103b3e763181a4144d358e15faf6e97"
+    },
+    {
+      "upstream": "rust/processing/src/processor/color_layer.rs",
+      "path": "crates/processing/src/processor/color_layer.rs",
+      "sha256": "a239416893a4edd0a3982a12b71614931f05de027a86c78b3a988243900f06aa"
+    },
+    {
+      "upstream": "rust/processing/src/processor/opening_filter.rs",
+      "path": "crates/processing/src/processor/opening_filter.rs",
+      "sha256": "29bf21c2964fc9c0ac12bf48fce7394af34b5f24848acac546004a010474c843"
+    },
+    {
+      "upstream": "rust/processing/src/processor/quick_metadata.rs",
+      "path": "crates/processing/src/processor/quick_metadata.rs",
+      "sha256": "83de9c52f8d2a496716b2f02736945fe24e59ae600c9acdb41eb9abe274055eb"
+    },
+    {
+      "upstream": "rust/processing/src/processor/jobs.rs",
+      "path": "crates/processing/src/processor/jobs.rs",
+      "sha256": "94993f4bab4cd07c5d68459b2440c8feaa85a42de928a36829405a6049186aa3"
+    },
+    {
+      "upstream": "rust/processing/src/style/material.rs",
+      "path": "crates/processing/src/style/material.rs",
+      "sha256": "967a3805e7b66705e899d3de0253755d3b31cb57814f42722bccf7c64b39b180"
+    },
+    {
+      "upstream": "rust/processing/src/style/indexed_colour.rs",
+      "path": "crates/processing/src/style/indexed_colour.rs",
+      "sha256": "e6de9c9c26778e023545dea4aac21e29fbbe0c8700eb9df463c09984d79ff97b"
+    },
+    {
+      "upstream": "rust/processing/src/style/surface.rs",
+      "path": "crates/processing/src/style/surface.rs",
+      "sha256": "7a587a06883544ca3faed01dba73310ae62b1dc05970f4d274e46170ffc7d1c0"
+    },
+    {
+      "upstream": "rust/processing/src/style/mod.rs",
+      "path": "crates/processing/src/style/mod.rs",
+      "sha256": "182f3b84ee14cd3e6224feb74d5e777c5048593d46bf5e969b21b83f591839b6"
+    },
+    {
+      "upstream": "rust/processing/src/symbolic/primitives.rs",
+      "path": "crates/processing/src/symbolic/primitives.rs",
+      "sha256": "4e2653b9c07958c2d22370ceeb89222219ddac70ecd2b5be30371aa46aa9fb0d"
+    },
+    {
+      "upstream": "rust/processing/src/symbolic/color.rs",
+      "path": "crates/processing/src/symbolic/color.rs",
+      "sha256": "1b8508f83a7fd60532a1f11482fc2dd730297df5439fcf842b9d688579178ad6"
+    },
+    {
+      "upstream": "rust/processing/src/symbolic/fill.rs",
+      "path": "crates/processing/src/symbolic/fill.rs",
+      "sha256": "eaced0b1edb0e8096c19c83ff554c0883469f2f83b2eedc6dd1359df3b6c7bea"
+    },
+    {
+      "upstream": "rust/processing/src/symbolic/grid.rs",
+      "path": "crates/processing/src/symbolic/grid.rs",
+      "sha256": "deac30c004a8a5729c79cd1730e4d64fd45463c21c40f52a135d88feef6437b0"
+    },
+    {
+      "upstream": "rust/processing/src/symbolic/items.rs",
+      "path": "crates/processing/src/symbolic/items.rs",
+      "sha256": "286f5cdd982e5fa50e9794647850c3f4bd1ede294fd2ef700b58f77731dbdf46"
+    },
+    {
+      "upstream": "rust/processing/src/symbolic/mod.rs",
+      "path": "crates/processing/src/symbolic/mod.rs",
+      "sha256": "afbe81329d636e4b1e9cfdd58d7c371535faab2268320cc5f2aeaaf2457909fb"
+    },
+    {
+      "upstream": "rust/processing/src/symbolic/text.rs",
+      "path": "crates/processing/src/symbolic/text.rs",
+      "sha256": "da4f32b8a3363a6267b804e73fd13e2874cf156f64d700fc3dd977b1b1a2ea41"
+    },
+    {
+      "upstream": "rust/processing/src/symbolic/transform.rs",
+      "path": "crates/processing/src/symbolic/transform.rs",
+      "sha256": "47e1c743c513a7867ba62dc8f72ad9848acdab251aebbbc8c51172865915ecd7"
+    },
+    {
+      "upstream": "rust/export/src/model_tests.rs",
+      "path": "crates/entities/src/model_tests.rs",
+      "sha256": "a41fb60982d2c5b9f258377b5c0386ab727afaf76d65446928a33d14f53d71ac"
+    },
+    {
+      "upstream": "rust/export/src/model_inherit.rs",
+      "path": "crates/entities/src/model_inherit.rs",
+      "sha256": "d0a8000af0b27e985fd05b91ba1fce8aa2cab85d95eebba935fba886119261e0"
+    },
+    {
+      "upstream": "rust/export/src/model_props.rs",
+      "path": "crates/entities/src/model_props.rs",
+      "sha256": "00f7c17e38f704161b64c694fcb3f64e176bc230027bbb2791236ebadebcbe70"
+    },
+    {
+      "upstream": "rust/export/src/model_inherit_tests.rs",
+      "path": "crates/entities/src/model_inherit_tests.rs",
+      "sha256": "a3c176ba421518a08c99710e473dadfff0b6f71a91fbb06ca7be0113295c6cf7"
+    },
+    {
+      "upstream": "rust/export/src/model_types.rs",
+      "path": "crates/entities/src/model_types.rs",
+      "sha256": "d3ad5f81e4094965528f2af279d94ce436d4f8d19cbfc9c347d526a767e29a76"
+    },
+    {
+      "upstream": "rust/export/src/model.rs",
+      "path": "crates/entities/src/model.rs",
+      "sha256": "75eca7a45e46f30c0c04f20bbcb7502a06f96fa9af7c5cf335f0228fa2c3209a"
+    },
+    {
+      "upstream": "rust/export/src/model_options.rs",
+      "path": "crates/entities/src/model_options.rs",
+      "sha256": "60afc4f26b8fa533fc365a1566ef8a7e30338c6fee2ad8210546a0f19d19ffe7"
+    },
+    {
+      "upstream": "rust/python/src/lib.rs",
+      "path": "src/python_geometry.rs",
+      "sha256": "d694c102f82b5057d49fee49921ac2cb4e8b7817b536aabeb09aa930c8db983b"
+    }
+  ]
+}

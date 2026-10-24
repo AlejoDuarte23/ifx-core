@@ -1,18 +1,27 @@
-// This Source Code Form is subject to the terms of the Mozilla Public
-// License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+// SPDX-License-Identifier: MPL-2.0
+mod coverage;
+mod extraction;
+pub use coverage::{ClassCoverage, CoverageReport, ExtractionCoverage, IdExamples};
+#[cfg(feature = "python")]
+mod python_geometry;
+#[cfg(feature = "wasm")]
+mod wasm;
+pub use extraction::{extract, Extraction};
 
-//! IFC spatial and material relationship extraction.
-//!
-//! `ifcx-core` complements `ifclite-geom`: the latter produces geometry and
-//! entity/property data, while this crate resolves the relationship structures
-//! needed by IFC viewers and analysis applications.
-
+mod classifications;
+mod connections;
+mod documents;
+mod georeferencing;
+mod groups;
 mod materials;
 mod model;
+mod object_types;
+mod openings;
 mod parser;
 mod relationships;
+mod resource_properties;
 mod spatial;
+mod units;
 
 pub use model::*;
 
@@ -36,14 +45,32 @@ pub enum Error {
 pub fn analyze_ifc(ifc_bytes: &[u8]) -> Result<ModelData, Error> {
     let parsed = parser::parse_model(ifc_bytes)?;
     let relations = relationships::extract_relations(&parsed);
+    let object_types = object_types::extract(&parsed, &relations);
     let spatial = spatial::build_spatial(&parsed, &relations);
-    let materials = materials::build_materials(&parsed, &relations);
+    let openings = openings::build_openings(&relations);
+    let classifications = classifications::build_classifications(&parsed, &relations);
+    let documents = documents::build_documents(&parsed, &relations);
+    let groups = groups::build_groups(&parsed, &relations);
+    let connections = connections::build_connections(&parsed);
+    let georeferencing = georeferencing::build_georeferencing(&parsed);
+    let materials = materials::build_materials(&parsed, &relations, ifc_bytes);
+    let units = units::build_units(&parsed);
+    let coverage = coverage::scan(&parsed);
     Ok(ModelData {
+        coverage,
         schema: parsed.schema,
         entity_count: parsed.entity_types.len(),
         length_unit_scale: parsed.length_unit_scale,
+        units,
         relationships: relations.edges,
+        object_types,
         spatial,
+        openings,
+        classifications,
+        documents,
+        groups,
+        connections,
+        georeferencing,
         materials,
     })
 }
@@ -71,13 +98,14 @@ fn model_data_json(py: Python<'_>, ifc_bytes: Vec<u8>) -> PyResult<String> {
 
 #[cfg(feature = "python")]
 #[pymodule]
-fn ifcx_core(module: &Bound<'_, PyModule>) -> PyResult<()> {
+fn ifx_core(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(model_data, module)?)?;
     module.add_function(wrap_pyfunction!(model_data_json, module)?)?;
+    python_geometry::register(module)?;
     module.add("__version__", env!("CARGO_PKG_VERSION"))?;
     module.add(
         "__doc__",
-        "Native IFC spatial and material relationships, complementing ifclite-geom.",
+        "IFX native IFC geometry, properties, and relationships.",
     )?;
     Ok(())
 }

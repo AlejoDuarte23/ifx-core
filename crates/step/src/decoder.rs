@@ -1,0 +1,1163 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+//! Entity Decoder - On-demand entity parsing
+//!
+//! Lazily decode IFC entities from byte offsets without loading entire file into memory.
+
+use crate::columnar_index::EntityIndexStore;
+use crate::error::{Error, Result};
+use crate::parser::{parse_entity, EntityScanner};
+use crate::schema_gen::{AttributeValue, DecodedEntity};
+use rustc_hash::FxHashMap;
+use std::sync::Arc;
+
+#[path = "decoder/caches.rs"]
+mod caches;
+
+/// Pre-built entity index type
+pub type EntityIndex = FxHashMap<u32, (usize, usize)>;
+
+/// Build an entity index from content.
+///
+/// This intentionally shares `EntityScanner`'s HEADER skipping and quoted-string
+/// semantics so scan iteration and decoder lookup cannot disagree on malformed
+/// headers or semicolons embedded inside STEP strings.
+#[inline]
+pub fn build_entity_index<T>(content: &T) -> EntityIndex
+where
+    T: AsRef<[u8]> + ?Sized,
+{
+    let content = content.as_ref();
+    let estimated_entities = content.len() / 50;
+    let mut index = FxHashMap::with_capacity_and_hasher(estimated_entities, Default::default());
+    let mut scanner = EntityScanner::new(content);
+    while let Some((id, _type_name, start, end)) = scanner.next_entity() {
+        index.insert(id, (start, end));
+    }
+
+    index
+}
+
+/// Entity decoder for lazy parsing from raw IFC bytes.
+///
+/// String attributes are decoded lossily when tokens become `AttributeValue`s;
+/// structural scanning and byte offsets always use the original source bytes.
+pub struct EntityDecoder<'a> {
+    content: &'a [u8],
+    source_schema: Option<crate::schema::SourceSchema>,
+    grid_axis_placements: Option<FxHashMap<u32, u32>>,
+    /// Cache of decoded entities (entity_id -> `Arc<DecodedEntity>`)
+    /// Using Arc avoids expensive clones on cache hits
+    cache: FxHashMap<u32, Arc<DecodedEntity>>,
+    /// Entity offsets (entity_id -> (start, end)): legacy `FxHashMap` or compact
+    /// columnar index. `pub(crate)` for `crate::columnar_index`'s constructors.
+    pub(crate) entity_index: Option<EntityIndexStore>,
+    /// Cache of cartesian point coordinates for FacetedBrep optimization
+    /// Only populated when using get_polyloop_coords_cached
+    point_cache: FxHashMap<u32, (f64, f64, f64)>,
+    /// Number of `point_cache` hits served by [`Self::get_polyloop_coords_cached`].
+    /// Pure instrumentation (never affects output); read via
+    /// [`Self::point_cache_stats`] to prove cross-element memoization fires when
+    /// the cache is hoisted across a worker's parts.
+    point_cache_hits: u64,
+    /// Number of `point_cache` misses (a CartesianPoint parsed for the first time)
+    /// served by [`Self::get_polyloop_coords_cached`].
+    point_cache_misses: u64,
+    /// Lazy-cached multiplier converting file plane-angle units to radians.
+    /// Populated on first call to [`Self::plane_angle_to_radians`]. Spec
+    /// default (and Renga-style files) is 1.0 (RADIAN); degree-unit files
+    /// resolve to π/180.
+    plane_angle_to_radians_cache: Option<f64>,
+    /// Lazy-cached multiplier converting file length units to metres.
+    /// Populated on first call to [`Self::length_unit_scale`]. 1.0 for metre
+    /// files, 0.001 for millimetre files, etc. Used to express absolute
+    /// tolerances (e.g. curve-tessellation chord deviation) in file units.
+    length_unit_scale_cache: Option<f64>,
+    /// Per-worker memo of resolved placement world transforms, keyed by the
+    /// IfcObjectPlacement entity id and stored as an opaque column-major
+    /// `[f64; 16]` (core must not depend on nalgebra; the geometry crate owns
+    /// the Matrix4 <-> array round-trip). Populated by the geometry router's
+    /// placement resolver, which recursively composes `parent * local` down the
+    /// IfcLocalPlacement chain. For a well-formed acyclic placement DAG the
+    /// resolved transform is a pure function of the placement id, so reusing it
+    /// across the elements a single worker meshes is byte-identical (speed
+    /// only): storey/building placements shared by thousands of elements are
+    /// composed once per worker instead of once per element. Hoisted across a
+    /// worker's parts exactly like `point_cache`; see
+    /// [`Self::take_placement_transform_cache`].
+    placement_transform_cache: FxHashMap<u32, [f64; 16]>,
+}
+
+impl<'a> EntityDecoder<'a> {
+    /// Create new decoder
+    pub fn new<T>(content: &'a T) -> Self
+    where
+        T: AsRef<[u8]> + ?Sized,
+    {
+        let content = content.as_ref();
+        let schema = crate::schema::declared_schema(content)
+            .as_deref()
+            .and_then(crate::schema::SourceSchema::from_identifier);
+        Self::new_for_schema(content, schema)
+    }
+
+    pub fn new_for_schema(
+        content: &'a [u8],
+        source_schema: Option<crate::schema::SourceSchema>,
+    ) -> Self {
+        Self {
+            content,
+            source_schema,
+            grid_axis_placements: None,
+            cache: FxHashMap::default(),
+            entity_index: None,
+            point_cache: FxHashMap::default(),
+            point_cache_hits: 0,
+            point_cache_misses: 0,
+            plane_angle_to_radians_cache: None,
+            length_unit_scale_cache: None,
+            placement_transform_cache: FxHashMap::default(),
+        }
+    }
+
+    pub fn with_arc_index_for_schema(
+        content: &'a [u8],
+        index: Arc<EntityIndex>,
+        schema: Option<crate::schema::SourceSchema>,
+    ) -> Self {
+        let mut decoder = Self::new_for_schema(content, schema);
+        decoder.set_entity_index(index);
+        decoder
+    }
+
+    /// Create decoder with pre-built index (faster for repeated lookups)
+    pub fn with_index<T>(content: &'a T, index: EntityIndex) -> Self
+    where
+        T: AsRef<[u8]> + ?Sized,
+    {
+        let content = content.as_ref();
+        Self {
+            content,
+            source_schema: crate::schema::declared_schema(content)
+                .as_deref()
+                .and_then(crate::schema::SourceSchema::from_identifier),
+            grid_axis_placements: None,
+            cache: FxHashMap::default(),
+            entity_index: Some(EntityIndexStore::Hash(Arc::new(index))),
+            point_cache: FxHashMap::default(),
+            point_cache_hits: 0,
+            point_cache_misses: 0,
+            plane_angle_to_radians_cache: None,
+            length_unit_scale_cache: None,
+            placement_transform_cache: FxHashMap::default(),
+        }
+    }
+
+    /// Create decoder with shared Arc index (for parallel processing)
+    pub fn with_arc_index<T>(content: &'a T, index: Arc<EntityIndex>) -> Self
+    where
+        T: AsRef<[u8]> + ?Sized,
+    {
+        let content = content.as_ref();
+        Self {
+            content,
+            source_schema: crate::schema::declared_schema(content)
+                .as_deref()
+                .and_then(crate::schema::SourceSchema::from_identifier),
+            grid_axis_placements: None,
+            cache: FxHashMap::default(),
+            entity_index: Some(EntityIndexStore::Hash(index)),
+            point_cache: FxHashMap::default(),
+            point_cache_hits: 0,
+            point_cache_misses: 0,
+            plane_angle_to_radians_cache: None,
+            length_unit_scale_cache: None,
+            placement_transform_cache: FxHashMap::default(),
+        }
+    }
+
+    pub fn source_schema(&self) -> Option<crate::schema::SourceSchema> {
+        self.source_schema
+    }
+
+    fn with_source_definition(&self, mut entity: DecodedEntity, line: &[u8]) -> DecodedEntity {
+        if let (Some(schema), Some(name)) =
+            (self.source_schema, crate::extract_entity_type_name(line))
+        {
+            entity.source_definition = schema.entity(name);
+        }
+        // Some exporters use .NULL. for an unset BarSurface. It is not a
+        // valid IfcReinforcingBarSurfaceEnum, but NULL is valid in other IFC
+        // types (IfcNullStyle), so keep the compatibility repair field-specific.
+        if matches!(
+            entity.ifc_type,
+            crate::generated::IfcType::IfcReinforcingBar
+                | crate::generated::IfcType::IfcReinforcingBarType
+                | crate::generated::IfcType::IfcReinforcementBarProperties
+        ) {
+            if let Some(index) = entity
+                .attribute_names()
+                .iter()
+                .position(|n| *n == "BarSurface")
+            {
+                if matches!(entity.get(index), Some(AttributeValue::Enum(value)) if value.eq_ignore_ascii_case("NULL"))
+                {
+                    Arc::make_mut(&mut entity.attributes)[index] = AttributeValue::Null;
+                }
+            }
+        }
+        entity
+    }
+
+    pub fn grid_axis_placement(&mut self, axis_id: u32) -> Option<u32> {
+        if self.grid_axis_placements.is_none() {
+            let mut placements = FxHashMap::default();
+            let mut scanner = EntityScanner::new(self.content);
+            while let Some((_, name, start, end)) = scanner.next_entity() {
+                if !name.eq_ignore_ascii_case("IFCGRID") {
+                    continue;
+                }
+                if let Ok(grid) = self.decode_at_uncached(start, end) {
+                    let Some(parent) = grid.get_ref(5) else {
+                        continue;
+                    };
+                    for attr in ["UAxes", "VAxes", "WAxes"] {
+                        for axis in grid
+                            .get_named(attr)
+                            .and_then(|v| v.as_list())
+                            .into_iter()
+                            .flatten()
+                        {
+                            if let Some(id) = axis.as_entity_ref() {
+                                placements.insert(id, parent);
+                            }
+                        }
+                    }
+                }
+            }
+            self.grid_axis_placements = Some(placements);
+        }
+        self.grid_axis_placements.as_ref()?.get(&axis_id).copied()
+    }
+
+    /// Install a pre-built index into this decoder. Used when the caller already
+    /// built the index during another pass (e.g. the processor scan loop) so the
+    /// decoder does not lazily rebuild it via `build_index`. Set it before any
+    /// `decode_by_id`/ref-resolving call; afterwards `build_index` no-ops.
+    pub fn set_entity_index(&mut self, index: Arc<EntityIndex>) {
+        self.entity_index = Some(EntityIndexStore::Hash(index));
+    }
+
+    /// Build entity index for O(1) lookups
+    /// This scans the file once and maps entity IDs to byte offsets
+    fn build_index(&mut self) {
+        if self.entity_index.is_some() {
+            return; // Already built
+        }
+        self.entity_index = Some(EntityIndexStore::Hash(Arc::new(build_entity_index(
+            self.content,
+        ))));
+    }
+
+    /// Decode entity at byte offset
+    /// Returns cached entity if already decoded
+    ///
+    /// Validates the `(start, end)` span against `self.content.len()` before
+    /// slicing. Out-of-range or inverted spans return `Error::parse` instead
+    /// of panicking — callers (e.g. `decode_and_cache`, `decode_at_with_id`,
+    /// the streaming pre-pass shard mergers) hand us spans derived from
+    /// untrusted/streamed entity-index data, and a malformed span must not
+    /// take down the whole worker.
+    #[inline]
+    pub fn decode_at(&mut self, start: usize, end: usize) -> Result<DecodedEntity> {
+        let content_len = self.content.len();
+        if start > end || end > content_len {
+            return Err(Error::parse(
+                0,
+                format!(
+                    "decode_at: invalid byte span ({}, {}) for content length {}",
+                    start, end, content_len,
+                ),
+            ));
+        }
+        let line = &self.content[start..end];
+        let (id, ifc_type, tokens) = parse_entity(line).map_err(|e| {
+            // Add bounded, lossy debug info without requiring the source to be UTF-8.
+            let cut = line.len().min(100);
+            Error::parse(
+                0,
+                format!(
+                    "Failed to parse entity: {:?}, input: {:?}",
+                    e,
+                    String::from_utf8_lossy(&line[..cut])
+                ),
+            )
+        })?;
+
+        // Check cache first - return clone of inner DecodedEntity
+        if let Some(entity_arc) = self.cache.get(&id) {
+            return Ok(entity_arc.as_ref().clone());
+        }
+
+        // Convert tokens to AttributeValues
+        let attributes = tokens
+            .iter()
+            .map(|token| AttributeValue::from_token(token))
+            .collect();
+
+        let entity =
+            self.with_source_definition(DecodedEntity::new(id, ifc_type, attributes), line);
+        self.cache.insert(id, Arc::new(entity.clone()));
+        Ok(entity)
+    }
+
+    /// Decode the entity in `[start, end)` **without** touching the cache.
+    ///
+    /// [`decode_at`](Self::decode_at) memoizes every entity it parses, which is the
+    /// right trade-off for geometry sub-tree walks (the same points/profiles are
+    /// revisited many times). For a single linear pass over *every* entity in a
+    /// large model — tens of millions of rows — that cache grows without bound and
+    /// dominates memory. This variant parses and returns the entity but never
+    /// inserts it, so a streaming walk stays O(1) in entity count. The caller owns
+    /// the result; for identical bytes it yields an identical [`DecodedEntity`] to
+    /// `decode_at`, only without the cache side effect.
+    pub fn decode_at_uncached(&self, start: usize, end: usize) -> Result<DecodedEntity> {
+        let content_len = self.content.len();
+        if start > end || end > content_len {
+            return Err(Error::parse(
+                0,
+                format!(
+                    "decode_at_uncached: invalid byte span ({}, {}) for content length {}",
+                    start, end, content_len,
+                ),
+            ));
+        }
+        let line = &self.content[start..end];
+        let (id, ifc_type, tokens) = parse_entity(line).map_err(|e| {
+            let cut = line.len().min(100);
+            Error::parse(
+                0,
+                format!(
+                    "Failed to parse entity: {:?}, input: {:?}",
+                    e,
+                    String::from_utf8_lossy(&line[..cut])
+                ),
+            )
+        })?;
+        let attributes = tokens
+            .iter()
+            .map(|token| AttributeValue::from_token(token))
+            .collect();
+        Ok(self.with_source_definition(DecodedEntity::new(id, ifc_type, attributes), line))
+    }
+
+    /// Decode entity at byte offset with known ID (faster - checks cache before parsing)
+    /// Use this when the scanner provides the entity ID to avoid re-parsing cached entities
+    #[inline]
+    pub fn decode_at_with_id(
+        &mut self,
+        id: u32,
+        start: usize,
+        end: usize,
+    ) -> Result<DecodedEntity> {
+        // Check cache first - avoid parsing if already decoded
+        if let Some(entity_arc) = self.cache.get(&id) {
+            return Ok(entity_arc.as_ref().clone());
+        }
+
+        // Not in cache, parse and cache
+        self.decode_at(start, end)
+    }
+
+    /// Decode entity by ID - O(1) lookup using entity index
+    #[inline]
+    pub fn decode_by_id(&mut self, entity_id: u32) -> Result<DecodedEntity> {
+        // Check cache first - return clone of inner DecodedEntity
+        if let Some(entity_arc) = self.cache.get(&entity_id) {
+            return Ok(entity_arc.as_ref().clone());
+        }
+
+        // Build index if not already built
+        self.build_index();
+
+        // O(1) lookup in index
+        let (start, end) = self
+            .entity_index
+            .as_ref()
+            .and_then(|idx| idx.lookup(entity_id))
+            .ok_or_else(|| Error::parse(0, format!("Entity #{} not found", entity_id)))?;
+
+        self.decode_at(start, end)
+    }
+
+    /// Multiplier that converts file plane-angle units to radians.
+    ///
+    /// Lazy-resolved on first call by scanning for IFCPROJECT and reading
+    /// its IFCUNITASSIGNMENT. Cached for subsequent calls. Returns `1.0`
+    /// when no plane-angle unit is declared (IFC spec default = RADIAN).
+    ///
+    /// Use this at curve-sampling time wherever an `IfcParameterValue` is
+    /// interpreted as an angle (IfcCircle / IfcEllipse trim parameters).
+    /// Without it, `value.to_radians()` is correct only for DEGREE files
+    /// and silently shrinks arcs on RADIAN files (issue #820).
+    pub fn plane_angle_to_radians(&mut self) -> f64 {
+        if let Some(cached) = self.plane_angle_to_radians_cache {
+            return cached;
+        }
+
+        let mut scanner = crate::parser::EntityScanner::new(self.content);
+        let mut project_id: Option<u32> = None;
+        while let Some((id, type_name, _, _)) = scanner.next_entity() {
+            if type_name == "IFCPROJECT" {
+                project_id = Some(id);
+                break;
+            }
+        }
+
+        let scale = match project_id {
+            Some(pid) => crate::units::extract_plane_angle_to_radians(self, pid).unwrap_or(1.0),
+            None => 1.0,
+        };
+        self.plane_angle_to_radians_cache = Some(scale);
+        scale
+    }
+
+    /// Multiplier that converts file length units to metres (1.0 for metre
+    /// files, 0.001 for millimetre files, …). Lazy-resolved on first call by
+    /// scanning for IFCPROJECT and reading its IFCUNITASSIGNMENT, then cached.
+    /// Returns `1.0` when no length unit is declared.
+    ///
+    /// Use this to express an *absolute* metric tolerance in file units —
+    /// e.g. a curve-tessellation chord-deviation budget that stays constant in
+    /// millimetres whether the file is authored in mm or m.
+    pub fn length_unit_scale(&mut self) -> f64 {
+        if let Some(cached) = self.length_unit_scale_cache {
+            return cached;
+        }
+
+        let mut scanner = crate::parser::EntityScanner::new(self.content);
+        let mut project_id: Option<u32> = None;
+        while let Some((id, type_name, _, _)) = scanner.next_entity() {
+            if type_name == "IFCPROJECT" {
+                project_id = Some(id);
+                break;
+            }
+        }
+
+        let scale = match project_id {
+            Some(pid) => crate::units::extract_length_unit_scale(self, pid).unwrap_or(1.0),
+            None => 1.0,
+        };
+        self.length_unit_scale_cache = Some(scale);
+        scale
+    }
+
+    /// Pre-seed the unit-scale caches so [`Self::length_unit_scale`] and
+    /// [`Self::plane_angle_to_radians`] return immediately without the full-file
+    /// `IFCPROJECT` scan.
+    ///
+    /// Both lazy resolvers walk the whole DATA section to locate the (singleton)
+    /// `IFCPROJECT`. That scan is `O(file size)` and `IFCPROJECT` legally sits
+    /// anywhere — IfcOpenShell emits it near the *end*, so on a large model the
+    /// scan touches tens of MB. The cache is per-decoder, and the parallel
+    /// geometry pipeline builds a fresh decoder per element, so without seeding
+    /// every arc-bearing element re-pays the scan (≈135 ms each on a 75 MB
+    /// file). The orchestrator resolves both scales once on a warm shared
+    /// decoder and seeds each worker decoder here.
+    pub fn seed_unit_scales(&mut self, length_unit_scale: f64, plane_angle_to_radians: f64) {
+        self.length_unit_scale_cache = Some(length_unit_scale);
+        self.plane_angle_to_radians_cache = Some(plane_angle_to_radians);
+    }
+
+    /// Resolve entity reference (follow #ID)
+    /// Returns None for null/derived values
+    #[inline]
+    pub fn resolve_ref(&mut self, attr: &AttributeValue) -> Result<Option<DecodedEntity>> {
+        match attr.as_entity_ref() {
+            Some(id) => Ok(Some(self.decode_by_id(id)?)),
+            None => Ok(None),
+        }
+    }
+
+    /// Resolve list of entity references
+    pub fn resolve_ref_list(&mut self, attr: &AttributeValue) -> Result<Vec<DecodedEntity>> {
+        let list = attr
+            .as_list()
+            .ok_or_else(|| Error::parse(0, "Expected list".to_string()))?;
+
+        let mut entities = Vec::with_capacity(list.len());
+        for item in list {
+            if let Some(id) = item.as_entity_ref() {
+                entities.push(self.decode_by_id(id)?);
+            }
+        }
+        Ok(entities)
+    }
+
+    /// Get cached entity (without decoding)
+    pub fn get_cached(&self, entity_id: u32) -> Option<DecodedEntity> {
+        self.cache.get(&entity_id).map(|arc| arc.as_ref().clone())
+    }
+
+    /// Reserve cache capacity to avoid HashMap resizing during processing.
+    /// For a 487 MB file with 208 K building elements, the cache can grow to
+    /// 300 K+ entries (elements + representation chains + placements).
+    /// Pre-allocating avoids ~6 resize-and-rehash operations that each copy
+    /// all entries, reducing both peak memory spikes and timing variance.
+    pub fn reserve_cache(&mut self, additional: usize) {
+        self.cache.reserve(additional);
+    }
+
+    /// Inject a pre-warmed Arc-shared cache into this decoder's local cache.
+    ///
+    /// Used by the de-normalized parallel path: a serial pre-pass builds a
+    /// shared `Arc<FxHashMap<u32, Arc<DecodedEntity>>>` containing all
+    /// entities reachable from the jobs. Each rayon task then injects
+    /// that shared cache into its own decoder via this method, so the
+    /// per-task hot path hits in-WASM-heap Arc handles instead of
+    /// SAB-imported atomic memory.
+    ///
+    /// Cost: one Arc::clone per cached entry (atomic refcount bump).
+    /// For a typical 100K-entry cache × 9 rayon tasks = 900K atomics
+    /// total, ~90 ms wall (incurred ONCE at task setup; the parallel
+    /// hot path then runs lock-free against the populated cache).
+    pub fn inject_shared_cache(&mut self, shared: &FxHashMap<u32, Arc<DecodedEntity>>) {
+        self.cache.reserve(shared.len());
+        for (&id, entity) in shared.iter() {
+            self.cache.insert(id, Arc::clone(entity));
+        }
+    }
+
+    /// Decode + cache without returning. Used by the pre-warm pass to
+    /// populate a shared cache. Returns the cached Arc so the caller
+    /// can chase references without re-decoding.
+    pub fn decode_and_cache(
+        &mut self,
+        id: u32,
+        start: usize,
+        end: usize,
+    ) -> Result<Arc<DecodedEntity>> {
+        if let Some(arc) = self.cache.get(&id) {
+            return Ok(Arc::clone(arc));
+        }
+        let _ = self.decode_at(start, end)?;
+        Ok(Arc::clone(self.cache.get(&id).ok_or_else(|| {
+            Error::parse(0, "decode_at didn't populate cache".to_string())
+        })?))
+    }
+    /// Get raw bytes for an entity (for direct/fast parsing)
+    /// Returns the full entity line including type and attributes
+    #[inline]
+    pub fn get_raw_bytes(&mut self, entity_id: u32) -> Option<&'a [u8]> {
+        self.build_index();
+        let (start, end) = self.entity_index.as_ref()?.lookup(entity_id)?;
+        Some(&self.content[start..end])
+    }
+
+    /// Fast extraction of first entity ref from raw bytes
+    /// Useful for BREP -> shell ID, Face -> FaceBound, etc.
+    /// Returns the first entity reference ID found in the entity
+    #[inline]
+    pub fn get_first_entity_ref_fast(&mut self, entity_id: u32) -> Option<u32> {
+        let bytes = self.get_raw_bytes(entity_id)?;
+        let len = bytes.len();
+        let mut i = 0;
+
+        // Skip to first '(' after '='
+        while i < len && bytes[i] != b'(' {
+            i += 1;
+        }
+        if i >= len {
+            return None;
+        }
+        i += 1; // Skip first '('
+
+        // Find first '#' which is the entity ref
+        while i < len {
+            // Skip whitespace
+            while i < len && (bytes[i] == b' ' || bytes[i] == b'\n' || bytes[i] == b'\r') {
+                i += 1;
+            }
+
+            if i >= len {
+                return None;
+            }
+
+            if bytes[i] == b'#' {
+                i += 1;
+                let start = i;
+                while i < len && bytes[i].is_ascii_digit() {
+                    i += 1;
+                }
+                if i > start {
+                    let mut id = 0u32;
+                    for &b in &bytes[start..i] {
+                        id = id.wrapping_mul(10).wrapping_add((b - b'0') as u32);
+                    }
+                    return Some(id);
+                }
+            }
+            i += 1;
+        }
+
+        None
+    }
+
+    /// Fast extraction of entity reference IDs from a list attribute in raw bytes
+    /// Useful for getting face list from ClosedShell, bounds from Face, etc.
+    /// Returns list of entity IDs
+    #[inline]
+    pub fn get_entity_ref_list_fast(&mut self, entity_id: u32) -> Option<Vec<u32>> {
+        let bytes = self.get_raw_bytes(entity_id)?;
+
+        // Pattern: IFCTYPE((#id1,#id2,...)); or IFCTYPE((#id1,#id2,...),other);
+        let mut i = 0;
+        let len = bytes.len();
+
+        // Skip to first '(' after '='
+        while i < len && bytes[i] != b'(' {
+            i += 1;
+        }
+        if i >= len {
+            return None;
+        }
+        i += 1; // Skip first '('
+
+        // Skip to second '(' for the list
+        while i < len && bytes[i] != b'(' {
+            i += 1;
+        }
+        if i >= len {
+            return None;
+        }
+        i += 1; // Skip second '('
+
+        // Parse entity IDs
+        let mut ids = Vec::with_capacity(32);
+
+        while i < len {
+            // Skip whitespace and commas
+            while i < len
+                && (bytes[i] == b' ' || bytes[i] == b',' || bytes[i] == b'\n' || bytes[i] == b'\r')
+            {
+                i += 1;
+            }
+
+            if i >= len || bytes[i] == b')' {
+                break;
+            }
+
+            // Expect '#' followed by number
+            if bytes[i] == b'#' {
+                i += 1;
+                let start = i;
+                while i < len && bytes[i].is_ascii_digit() {
+                    i += 1;
+                }
+                if i > start {
+                    // Fast integer parsing directly from ASCII digits
+                    let mut id = 0u32;
+                    for &b in &bytes[start..i] {
+                        id = id.wrapping_mul(10).wrapping_add((b - b'0') as u32);
+                    }
+                    ids.push(id);
+                }
+            } else {
+                i += 1; // Skip unknown character
+            }
+        }
+
+        if ids.is_empty() {
+            None
+        } else {
+            Some(ids)
+        }
+    }
+
+    /// Fast extraction of PolyLoop point IDs directly from raw bytes
+    /// Bypasses full entity decoding for BREP optimization
+    /// Returns list of entity IDs for CartesianPoints
+    #[inline]
+    pub fn get_polyloop_point_ids_fast(&mut self, entity_id: u32) -> Option<Vec<u32>> {
+        let bytes = self.get_raw_bytes(entity_id)?;
+
+        // IFCPOLYLOOP((#id1,#id2,#id3,...));
+        let mut i = 0;
+        let len = bytes.len();
+
+        // Skip to first '(' after '='
+        while i < len && bytes[i] != b'(' {
+            i += 1;
+        }
+        if i >= len {
+            return None;
+        }
+        i += 1; // Skip first '('
+
+        // Skip to second '(' for the point list
+        while i < len && bytes[i] != b'(' {
+            i += 1;
+        }
+        if i >= len {
+            return None;
+        }
+        i += 1; // Skip second '('
+
+        // Parse point IDs
+        let mut point_ids = Vec::with_capacity(8); // Most faces have 3-8 vertices
+
+        while i < len {
+            // Skip whitespace and commas
+            while i < len
+                && (bytes[i] == b' ' || bytes[i] == b',' || bytes[i] == b'\n' || bytes[i] == b'\r')
+            {
+                i += 1;
+            }
+
+            if i >= len || bytes[i] == b')' {
+                break;
+            }
+
+            // Expect '#' followed by number
+            if bytes[i] == b'#' {
+                i += 1;
+                let start = i;
+                while i < len && bytes[i].is_ascii_digit() {
+                    i += 1;
+                }
+                if i > start {
+                    // Fast integer parsing directly from ASCII digits
+                    let mut id = 0u32;
+                    for &b in &bytes[start..i] {
+                        id = id.wrapping_mul(10).wrapping_add((b - b'0') as u32);
+                    }
+                    point_ids.push(id);
+                }
+            } else {
+                i += 1; // Skip unknown character
+            }
+        }
+
+        if point_ids.is_empty() {
+            None
+        } else {
+            Some(point_ids)
+        }
+    }
+
+    /// Fast extraction of CartesianPoint coordinates directly from raw bytes
+    /// Bypasses full entity decoding for ~3x speedup on BREP-heavy files
+    /// Returns (x, y, z) as f64 tuple
+    #[inline]
+    pub fn get_cartesian_point_fast(&mut self, entity_id: u32) -> Option<(f64, f64, f64)> {
+        let bytes = self.get_raw_bytes(entity_id)?;
+
+        // Find opening paren for coordinates: IFCCARTESIANPOINT((x,y,z));
+        let mut i = 0;
+        let len = bytes.len();
+
+        // Skip to first '(' after '='
+        while i < len && bytes[i] != b'(' {
+            i += 1;
+        }
+        if i >= len {
+            return None;
+        }
+        i += 1; // Skip first '('
+
+        // Skip to second '(' for the coordinate list
+        while i < len && bytes[i] != b'(' {
+            i += 1;
+        }
+        if i >= len {
+            return None;
+        }
+        i += 1; // Skip second '('
+
+        // Parse x coordinate
+        let x = parse_next_float(&bytes[i..], &mut i)?;
+
+        // Parse y coordinate
+        let y = parse_next_float(&bytes[i..], &mut i)?;
+
+        // Parse z coordinate (optional for 2D points, default to 0)
+        let z = parse_next_float(&bytes[i..], &mut i).unwrap_or(0.0);
+
+        Some((x, y, z))
+    }
+
+    /// Fast extraction of FaceBound info directly from raw bytes
+    /// Returns (loop_id, orientation, is_outer_bound)
+    /// Bypasses full entity decoding for BREP optimization
+    #[inline]
+    pub fn get_face_bound_fast(&mut self, entity_id: u32) -> Option<(u32, bool, bool)> {
+        let bytes = self.get_raw_bytes(entity_id)?;
+        let len = bytes.len();
+
+        // Find '=' to locate start of type name, and '(' for end
+        let mut eq_pos = 0;
+        while eq_pos < len && bytes[eq_pos] != b'=' {
+            eq_pos += 1;
+        }
+        if eq_pos >= len {
+            return None;
+        }
+
+        // Check if this is an outer bound by looking for "OUTER" in the type name
+        // IFCFACEOUTERBOUND vs IFCFACEBOUND
+        // The type name is between '=' and '('
+        let mut is_outer = false;
+        let mut i = eq_pos + 1;
+        // Look for "OUTER" pattern (must check for the full word, not just 'O')
+        while i + 4 < len && bytes[i] != b'(' {
+            if bytes[i] == b'O'
+                && bytes[i + 1] == b'U'
+                && bytes[i + 2] == b'T'
+                && bytes[i + 3] == b'E'
+                && bytes[i + 4] == b'R'
+            {
+                is_outer = true;
+                break;
+            }
+            i += 1;
+        }
+        // Continue to find the '(' if we haven't already
+        while i < len && bytes[i] != b'(' {
+            i += 1;
+        }
+        if i >= len {
+            return None;
+        }
+
+        i += 1; // Skip first '('
+
+        // Skip whitespace
+        while i < len && (bytes[i] == b' ' || bytes[i] == b'\n' || bytes[i] == b'\r') {
+            i += 1;
+        }
+
+        // Expect '#' for loop entity ref
+        if i >= len || bytes[i] != b'#' {
+            return None;
+        }
+        i += 1;
+
+        // Parse loop ID
+        let start = i;
+        while i < len && bytes[i].is_ascii_digit() {
+            i += 1;
+        }
+        if i <= start {
+            return None;
+        }
+        let mut loop_id = 0u32;
+        for &b in &bytes[start..i] {
+            loop_id = loop_id.wrapping_mul(10).wrapping_add((b - b'0') as u32);
+        }
+
+        // Find orientation after comma - default to true (.T.)
+        // Skip to comma
+        while i < len && bytes[i] != b',' {
+            i += 1;
+        }
+        i += 1; // Skip comma
+
+        // Skip whitespace
+        while i < len && (bytes[i] == b' ' || bytes[i] == b'\n' || bytes[i] == b'\r') {
+            i += 1;
+        }
+
+        // Check for .F. (false) or .T. (true)
+        let orientation = if i + 2 < len && bytes[i] == b'.' && bytes[i + 2] == b'.' {
+            bytes[i + 1] != b'F'
+        } else {
+            true // Default to true
+        };
+
+        Some((loop_id, orientation, is_outer))
+    }
+
+    /// Fast extraction of PolyLoop COORDINATES directly from raw bytes
+    /// This is the ultimate fast path - extracts all coordinates in one go
+    /// Avoids N+1 HashMap lookups by batching point extraction
+    /// Returns Vec of (x, y, z) coordinate tuples
+    #[inline]
+    pub fn get_polyloop_coords_fast(&mut self, entity_id: u32) -> Option<Vec<(f64, f64, f64)>> {
+        // Ensure index is built once
+        self.build_index();
+        let index = self.entity_index.as_ref()?;
+        let bytes_full = self.content;
+
+        // Get polyloop raw bytes
+        let (start, end) = index.lookup(entity_id)?;
+        let bytes = &bytes_full[start..end];
+
+        // IFCPOLYLOOP((#id1,#id2,#id3,...));
+        let mut i = 0;
+        let len = bytes.len();
+
+        // Skip to first '(' after '='
+        while i < len && bytes[i] != b'(' {
+            i += 1;
+        }
+        if i >= len {
+            return None;
+        }
+        i += 1; // Skip first '('
+
+        // Skip to second '(' for the point list
+        while i < len && bytes[i] != b'(' {
+            i += 1;
+        }
+        if i >= len {
+            return None;
+        }
+        i += 1; // Skip second '('
+
+        // Parse point IDs and immediately fetch coordinates
+        let mut coords = Vec::with_capacity(8); // Most faces have 3-8 vertices
+
+        while i < len {
+            // Skip whitespace and commas
+            while i < len
+                && (bytes[i] == b' ' || bytes[i] == b',' || bytes[i] == b'\n' || bytes[i] == b'\r')
+            {
+                i += 1;
+            }
+
+            if i >= len || bytes[i] == b')' {
+                break;
+            }
+
+            // Expect '#' followed by number
+            if bytes[i] == b'#' {
+                i += 1;
+                let id_start = i;
+                while i < len && bytes[i].is_ascii_digit() {
+                    i += 1;
+                }
+                if i > id_start {
+                    // Fast integer parsing directly from ASCII digits
+                    let mut point_id = 0u32;
+                    for &b in &bytes[id_start..i] {
+                        point_id = point_id.wrapping_mul(10).wrapping_add((b - b'0') as u32);
+                    }
+
+                    // INLINE: Get cartesian point coordinates directly
+                    // This avoids the overhead of calling get_cartesian_point_fast for each point
+                    if let Some((pt_start, pt_end)) = index.lookup(point_id) {
+                        if let Some(coord) =
+                            parse_cartesian_point_inline(&bytes_full[pt_start..pt_end])
+                        {
+                            coords.push(coord);
+                        }
+                    }
+                }
+            } else {
+                i += 1; // Skip unknown character
+            }
+        }
+
+        if coords.len() >= 3 {
+            Some(coords)
+        } else {
+            None
+        }
+    }
+
+    /// Fast extraction of PolyLoop COORDINATES with point caching
+    /// Uses a cache to avoid re-parsing the same cartesian points
+    /// For files with many faces sharing points, this can be 2-3x faster
+    #[inline]
+    pub fn get_polyloop_coords_cached(&mut self, entity_id: u32) -> Option<Vec<(f64, f64, f64)>> {
+        // Ensure index is built once
+        self.build_index();
+        let index = self.entity_index.as_ref()?;
+        let bytes_full = self.content;
+
+        // Get polyloop raw bytes
+        let (start, end) = index.lookup(entity_id)?;
+        let bytes = &bytes_full[start..end];
+
+        // IFCPOLYLOOP((#id1,#id2,#id3,...));
+        let mut i = 0;
+        let len = bytes.len();
+
+        // Skip to first '(' after '='
+        while i < len && bytes[i] != b'(' {
+            i += 1;
+        }
+        if i >= len {
+            return None;
+        }
+        i += 1; // Skip first '('
+
+        // Skip to second '(' for the point list
+        while i < len && bytes[i] != b'(' {
+            i += 1;
+        }
+        if i >= len {
+            return None;
+        }
+        i += 1; // Skip second '('
+
+        // Parse point IDs and fetch coordinates (with caching)
+        // CRITICAL: Track expected count to ensure all points are resolved
+        let mut coords = Vec::with_capacity(8);
+        let mut expected_count = 0u32;
+
+        while i < len {
+            // Skip whitespace and commas
+            while i < len
+                && (bytes[i] == b' ' || bytes[i] == b',' || bytes[i] == b'\n' || bytes[i] == b'\r')
+            {
+                i += 1;
+            }
+
+            if i >= len || bytes[i] == b')' {
+                break;
+            }
+
+            // Expect '#' followed by number
+            if bytes[i] == b'#' {
+                i += 1;
+                let id_start = i;
+                while i < len && bytes[i].is_ascii_digit() {
+                    i += 1;
+                }
+                if i > id_start {
+                    expected_count += 1; // Count every point ID we encounter
+
+                    // Fast integer parsing directly from ASCII digits
+                    let mut point_id = 0u32;
+                    for &b in &bytes[id_start..i] {
+                        point_id = point_id.wrapping_mul(10).wrapping_add((b - b'0') as u32);
+                    }
+
+                    // Check cache first
+                    if let Some(&coord) = self.point_cache.get(&point_id) {
+                        self.point_cache_hits += 1;
+                        coords.push(coord);
+                    } else {
+                        // Not in cache - parse and cache
+                        if let Some((pt_start, pt_end)) = index.lookup(point_id) {
+                            if let Some(coord) =
+                                parse_cartesian_point_inline(&bytes_full[pt_start..pt_end])
+                            {
+                                self.point_cache_misses += 1;
+                                self.point_cache.insert(point_id, coord);
+                                coords.push(coord);
+                            }
+                        }
+                    }
+                }
+            } else {
+                i += 1; // Skip unknown character
+            }
+        }
+
+        // CRITICAL: Return None if ANY point failed to resolve
+        // This matches the old behavior where missing points invalidated the whole polygon
+        if coords.len() >= 3 && coords.len() == expected_count as usize {
+            Some(coords)
+        } else {
+            None
+        }
+    }
+}
+
+/// Parse cartesian point coordinates inline from raw bytes
+/// Used by get_polyloop_coords_fast for maximum performance
+#[inline]
+fn parse_cartesian_point_inline(bytes: &[u8]) -> Option<(f64, f64, f64)> {
+    let len = bytes.len();
+    let mut i = 0;
+
+    // Skip to first '(' after '='
+    while i < len && bytes[i] != b'(' {
+        i += 1;
+    }
+    if i >= len {
+        return None;
+    }
+    i += 1; // Skip first '('
+
+    // Skip to second '(' for the coordinate list
+    while i < len && bytes[i] != b'(' {
+        i += 1;
+    }
+    if i >= len {
+        return None;
+    }
+    i += 1; // Skip second '('
+
+    // Parse x coordinate
+    let x = parse_float_inline(&bytes[i..], &mut i)?;
+
+    // Parse y coordinate
+    let y = parse_float_inline(&bytes[i..], &mut i)?;
+
+    // Parse z coordinate (optional for 2D points, default to 0)
+    let z = parse_float_inline(&bytes[i..], &mut i).unwrap_or(0.0);
+
+    Some((x, y, z))
+}
+
+/// Parse float inline - simpler version for batch coordinate extraction
+#[inline]
+fn parse_float_inline(bytes: &[u8], offset: &mut usize) -> Option<f64> {
+    let len = bytes.len();
+    let mut i = 0;
+
+    // Skip whitespace and commas
+    while i < len
+        && (bytes[i] == b' ' || bytes[i] == b',' || bytes[i] == b'\n' || bytes[i] == b'\r')
+    {
+        i += 1;
+    }
+
+    if i >= len || bytes[i] == b')' {
+        return None;
+    }
+
+    // Parse float using fast_float
+    match fast_float2::parse_partial::<f64, _>(&bytes[i..]) {
+        Ok((value, consumed)) if consumed > 0 => {
+            *offset += i + consumed;
+            Some(value)
+        }
+        _ => None,
+    }
+}
+
+/// Parse next float from bytes, advancing position past it
+#[inline]
+fn parse_next_float(bytes: &[u8], offset: &mut usize) -> Option<f64> {
+    let len = bytes.len();
+    let mut i = 0;
+
+    // Skip whitespace and commas
+    while i < len
+        && (bytes[i] == b' ' || bytes[i] == b',' || bytes[i] == b'\n' || bytes[i] == b'\r')
+    {
+        i += 1;
+    }
+
+    if i >= len || bytes[i] == b')' {
+        return None;
+    }
+
+    // Parse float using fast_float
+    match fast_float2::parse_partial::<f64, _>(&bytes[i..]) {
+        Ok((value, consumed)) if consumed > 0 => {
+            *offset += i + consumed;
+            Some(value)
+        }
+        _ => None,
+    }
+}
+
+#[cfg(test)]
+mod decoder_tests;

@@ -1,0 +1,27 @@
+{
+  "repository": "https://github.com/viktor-platform/ifc-sample-models",
+  "commit": "862a7fff992b5eb9ca607304bec1f60ce798d5b7",
+  "permission": "Used through remote URLs with permission from the repository owner.",
+  "models": [
+    {
+      "name": "BuildingBIMModel.ifc",
+      "sha256": "050081f9f7a6d374f8feebe111897e1039ee4b62505b8caab129da906232bf17"
+    },
+    {
+      "name": "SampleBimModelWebinar.ifc",
+      "sha256": "59cd892514bf723129f81ce50b2092e0f59e49e466eafd31589d0e43fa7007a0"
+    },
+    {
+      "name": "SampleBuilding.ifc",
+      "sha256": "fd579eeb81728f2989dc6b7e000470836844bdd45d087e2737e73edbb606cb88"
+    },
+    {
+      "name": "SampleStructuralModel.ifc",
+      "sha256": "d8b49fbd8111b78346509cbcf586c478a43d5e2a2cf866b689dddddc607647f5"
+    },
+    {
+      "name": "Structure Walls.ifc",
+      "sha256": "977caeec95de35acd5038489fa04a01a1a542554c5edfa7e02663f69b7ea56aa"
+    }
+  ]
+}

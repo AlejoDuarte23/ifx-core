@@ -1,22 +1,30 @@
 [package]
-name = "ifcx-core"
+name = "ifx-core"
 version = "0.1.0"
 edition = "2021"
 license = "MPL-2.0"
-description = "Spatial and material relationship extraction for IFC, complementing ifclite-geom"
-keywords = ["ifc", "bim", "spatial", "materials", "python"]
+description = "IFC extraction and geometry for Rust, Python, and WebAssembly"
+repository = "https://github.com/AlejoDuarte23/ifx-core"
+keywords = ["ifc", "bim", "spatial", "relationships", "materials"]
 categories = ["parsing", "science"]
 
 [lib]
-name = "ifcx_core"
+name = "ifx_core"
 crate-type = ["cdylib", "rlib"]
 
 [features]
 default = []
+wasm = ["dep:wasm-bindgen", "dep:serde-wasm-bindgen", "dep:js-sys"]
 python = ["dep:pyo3", "dep:pythonize"]
 
 [dependencies]
-ifc-lite-core = "7.1.1"
+ifx-step.workspace = true
+ifx-geometry.workspace = true
+ifx-processing.workspace = true
+ifx-entities.workspace = true
+wasm-bindgen = { version = "=0.2.104", optional = true }
+js-sys = { version = "=0.3.81", optional = true }
+serde-wasm-bindgen = { version = "0.6", optional = true }
 pyo3 = { version = "0.29", optional = true, features = ["abi3-py310"] }
 pythonize = { version = "0.29", optional = true }
 serde = { version = "1", features = ["derive"] }
@@ -25,3 +33,30 @@ thiserror = "2"
 
 [dev-dependencies]
 pretty_assertions = "1"
+
+[workspace]
+members = ["crates/step", "crates/geometry", "crates/processing", "crates/entities"]
+resolver = "2"
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["IFX Contributors", "IFC-Lite Contributors"]
+license = "MPL-2.0"
+repository = "https://github.com/AlejoDuarte23/ifx-core"
+[workspace.dependencies]
+ifx-step = { path = "crates/step", version = "0.1.0" }
+ifx-geometry = { path = "crates/geometry", version = "0.1.0" }
+ifx-processing = { path = "crates/processing", version = "0.1.0" }
+ifx-entities = { path = "crates/entities", version = "0.1.0" }
+[workspace.lints.clippy]
+excessive_precision = "allow"
+manual_range_contains = "allow"
+manual_clamp = "allow"
+neg_cmp_op_on_partial_ord = "allow"
+approx_constant = "allow"
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+[profile.dev.package.ifx-geometry]
+opt-level = 2

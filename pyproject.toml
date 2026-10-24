@@ -3,14 +3,14 @@ requires = ["maturin>=1.9,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "ifcx-core"
+name = "ifx-core"
 version = "0.1.0"
-description = "Native IFC spatial and material relationships for Python"
+description = "IFC extraction and geometry for Rust, Python, and WebAssembly"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MPL-2.0"
-authors = [{ name = "IFCX Contributors" }]
-keywords = ["ifc", "bim", "spatial", "materials", "rust"]
+authors = [{ name = "IFX Contributors" }]
+keywords = ["ifc", "bim", "spatial", "relationships", "materials", "rust"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Programming Language :: Rust",
@@ -25,24 +25,31 @@ test = [
 ]
 
 [project.urls]
+Repository = "https://github.com/AlejoDuarte23/ifx-core"
 Upstream = "https://github.com/LTplus-AG/ifc-lite"
 
 [dependency-groups]
 dev = [
-  "ifcopenshell==0.8.5; python_version >= '3.10' and python_version < '3.15'",
-  "maturin>=1.9,<2.0",
-  "pytest>=8,<10",
+    "ifcopenshell==0.8.5; python_version >= '3.10' and python_version < '3.15'",
+    "maturin>=1.9,<2.0",
+    "pytest>=8,<10",
+    "ruff>=0.12,<1",
 ]
 
 [tool.maturin]
-module-name = "ifcx_core"
+module-name = "ifx_core"
 features = ["python", "pyo3/extension-module"]
 include = [
-  { path = "ifcx_core.pyi", format = "wheel" },
+  { path = "ifx_core.pyi", format = "wheel" },
   { path = "LICENSE", format = "wheel" },
   { path = "ACKNOWLEDGEMENTS.md", format = "wheel" },
+  { path = "UPSTREAM_SOURCE.json", format = "sdist" },
+  { path = "crates/**/*", format = "sdist" },
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-markers = ["integration: tests requiring an external IFC model and IfcOpenShell"]
+markers = [
+  "corpus: tests that download the pinned VIKTOR IFC corpus",
+  "integration: tests requiring an external IFC model and IfcOpenShell",
+]

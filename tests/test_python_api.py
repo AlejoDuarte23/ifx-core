@@ -1,11 +1,6 @@
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at https://mozilla.org/MPL/2.0/.
-
 import json
 
-import ifcx_core
-
+import ifx_core
 
 MINIMAL_IFC = b"""ISO-10303-21;
 HEADER;
@@ -21,14 +16,24 @@ END-ISO-10303-21;
 
 
 def test_model_data_returns_native_python_objects() -> None:
-    data = ifcx_core.model_data(MINIMAL_IFC)
+    data = ifx_core.model_data(MINIMAL_IFC)
 
     assert data["schema"] == "IFC4"
     assert data["entity_count"] == 3
     assert data["spatial"]["project_id"] == 1
     assert data["spatial"]["roots"][0]["express_id"] == 1
+    assert data["units"]["assignment_id"] == 2
+    assert data["units"]["by_type"]["LENGTHUNIT"]["symbol"] == "m"
+    assert data["openings"] == {
+        "voids": [],
+        "fills": [],
+        "openings_by_element": {},
+        "elements_by_opening": {},
+        "fillings_by_opening": {},
+        "openings_by_filling": {},
+    }
     assert data["materials"]["associations"] == []
 
 
 def test_json_api_matches_native_api() -> None:
-    assert json.loads(ifcx_core.model_data_json(MINIMAL_IFC)) == ifcx_core.model_data(MINIMAL_IFC)
+    assert json.loads(ifx_core.model_data_json(MINIMAL_IFC)) == ifx_core.model_data(MINIMAL_IFC)
