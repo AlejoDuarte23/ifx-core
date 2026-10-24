@@ -405,11 +405,17 @@ __version__: str
 def model_data(ifc_bytes: bytes) -> ModelData: ...
 def model_data_json(ifc_bytes: bytes) -> str: ...
 
+class GeometryMaterialGroup(TypedDict):
+    triangle_start: int
+    triangle_count: int
+    color: list[float]
+
 class GeometryElement(TypedDict):
     ifc_type: str
     global_id: str | None
     name: str | None
     color: list[float]
+    material_groups: list[GeometryMaterialGroup]
     vertices: bytes
     faces: bytes
 

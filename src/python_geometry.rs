@@ -128,6 +128,15 @@ fn geometry_to_python(py: Python<'_>, export: &GeometryDataExport) -> PyResult<P
         d.set_item("global_id", el.global_id.clone())?;
         d.set_item("name", el.name.clone())?;
         d.set_item("color", el.color.to_vec())?;
+        let groups = PyList::empty(py);
+        for group in &el.material_groups {
+            let item = PyDict::new(py);
+            item.set_item("triangle_start", group.triangle_start)?;
+            item.set_item("triangle_count", group.triangle_count)?;
+            item.set_item("color", group.color.to_vec())?;
+            groups.append(item)?;
+        }
+        d.set_item("material_groups", groups)?;
         // Reinterpret the contiguous `[f64;3]` / `[u32;3]` vecs as little-endian
         // bytes (zero-copy; PyBytes copies into Python). Targets are all LE.
         let vbytes: &[u8] = unsafe {
