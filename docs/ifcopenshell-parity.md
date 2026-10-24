@@ -11,7 +11,7 @@ Length unit scale 0.001 m
 ```
 
 The model is an external test fixture and is not distributed with this
-repository. Set `IFCX_PARITY_MODEL` to run the same integration suite with a
+repository. Set `IFX_PARITY_MODEL` to run the same integration suite with a
 local copy.
 
 ## Exact relationship parity
@@ -27,7 +27,21 @@ through IfcOpenShell and requires exact equality of
 | `IfcRelContainedInSpatialStructure` | 8 | 850 | Exact |
 | `IfcRelReferencedInSpatialStructure` | 0 | 0 | Exact |
 | `IfcRelDefinesByType` | 813 | 5,721 | Exact |
+| `IfcRelDefinesByProperties` | 17,668 | model-dependent | Exact |
 | `IfcRelAssociatesMaterial` | 332 | 6,201 | Exact |
+| `IfcRelAssociatesClassification` | 26 | 5,766 resolved occurrences | Exact |
+| `IfcRelAssociatesDocument` | model-dependent | model-dependent | Exact |
+| `IfcRelVoidsElement` | model-dependent | model-dependent | Exact |
+| `IfcRelFillsElement` | model-dependent | model-dependent | Exact |
+| Group/product assignments | model-dependent | model-dependent | Exact |
+| Element/port connections | model-dependent | model-dependent | Exact |
+| Space boundaries (base/1st/2nd) | model-dependent | model-dependent | Exact |
+
+The integration oracle also checks typed classifications, documents, groups,
+connections, ports, space boundaries, and georeferencing. On this model it
+resolves two classification systems, 25 references, 5,766 classified
+occurrences, 83 group definitions, 163 memberships, 30 ports, and the
+`IfcSite` geolocation fallback.
 
 ## Spatial results
 
@@ -35,20 +49,18 @@ through IfcOpenShell and requires exact equality of
   orphan spatial nodes.
 - Direct `by_site`, `by_building`, `by_storey`, and `by_space` contents exactly
   match IfcOpenShell's `ContainsElements` inverses.
-- Every reverse container mapping emitted by `ifcx-core` agrees with
+- Every reverse container mapping emitted by `ifx-core` agrees with
   `ifcopenshell.util.element.get_container`.
-- `ifcx-core` follows the IFClite TypeScript contract: reverse maps cover direct
-  containment and aggregate/nest descendants. IfcOpenShell additionally walks
-  opening/filling ancestry, so its resolved universe can be larger. This model
-  has 5,765 `IfcElement` instances; the additional IfcOpenShell paths are not
-  reclassified as IFC spatial containment edges.
+- Reverse maps cover direct containment plus aggregate, nest, opening, and
+  filling descendants. Opening and filling ancestry is verified against
+  `ifcopenshell.util.element.get_container`.
 
 ## Material results
 
 - 50 `IfcMaterial` definitions and 314 `IfcMaterialConstituentSet` definitions
   are resolved.
 - The 332 associations target 5,533 element occurrences and 668 type objects.
-- `ifcx-core` resolves exactly the same 5,533 element assignments as
+- `ifx-core` resolves exactly the same 5,533 element assignments as
   `ifcopenshell.util.element.get_material`.
 - Constituent expansion produces the same ordered leaf material IDs as
   `ifcopenshell.util.element.get_materials` for every assigned element.

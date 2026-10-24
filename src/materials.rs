@@ -1,7 +1,3 @@
-// This Source Code Form is subject to the terms of the Mozilla Public
-// License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at https://mozilla.org/MPL/2.0/.
-
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::{
@@ -13,7 +9,11 @@ use crate::{
     relationships::Relations,
 };
 
-pub(crate) fn build_materials(model: &ParsedModel, relations: &Relations) -> MaterialsData {
+pub(crate) fn build_materials(
+    model: &ParsedModel,
+    relations: &Relations,
+    bytes: &[u8],
+) -> MaterialsData {
     let mut own: BTreeMap<u32, Vec<(u32, u32)>> = BTreeMap::new();
     for association in &relations.material_associations {
         for object_id in &association.related_objects {
@@ -84,7 +84,12 @@ pub(crate) fn build_materials(model: &ParsedModel, relations: &Relations) -> Mat
         let _ = resolver.resolve(definition_id, &mut BTreeSet::new());
     }
 
+    let (property_sets, properties_by_material, properties_by_profile) =
+        crate::resource_properties::extract(model, bytes);
     MaterialsData {
+        property_sets,
+        properties_by_material,
+        properties_by_profile,
         associations: relations.material_associations.clone(),
         definitions: resolver.cache,
         element_materials,

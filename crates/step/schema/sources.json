@@ -1,0 +1,18 @@
+{
+  "ifc2x3": {
+    "url": "https://raw.githubusercontent.com/buildingSMART/IFC4.x-development/ifc4.3-main/reference_schemas/IFC2X3_TC1.exp",
+    "sha256": "e18a1b2c3e29f5256904c83378ccad0850f52287a8d0122d149aba4a417fe5e5"
+  },
+  "ifc4": {
+    "url": "https://raw.githubusercontent.com/buildingSMART/IFC4.x-development/ifc4.3-main/reference_schemas/IFC4_ADD2_TC1.exp",
+    "sha256": "a2704ba20a1b3d0b7d9b61d6fd37d0baa3b4996ba3e90d968a1d2ca2819d1046"
+  },
+  "ifc4x3_rc4": {
+    "url": "https://raw.githubusercontent.com/buildingSMART/IFC4.x-development/ifc4.3-main/reference_schemas/IFC4x3_RC4.exp",
+    "sha256": "9b7d0c3e187f4bd609ef96e2083f25ddcc8f66c6e97f48513bfeec4361980065"
+  },
+  "ifc4x3_add2": {
+    "url": "https://raw.githubusercontent.com/buildingSMART/Standards-builds/master/IFC/RELEASE/IFC4_3/HTML/IFC4X3_ADD2.exp",
+    "sha256": "f67c8762b13a099c28082061e6f16b9ef1284ceec34069792afc702725675860"
+  }
+}

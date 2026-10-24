@@ -1,0 +1,26 @@
+name: IFC corpus
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 5 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: astral-sh/setup-uv@v10.0.1
+        with:
+          enable-cache: true
+          python-version: "3.14"
+      - run: uv sync --group dev --no-install-project
+      - run: uv run --no-sync maturin develop --uv
+      - run: .venv/bin/python -m pytest -m corpus -q
+        env:
+          IFX_RUN_REMOTE_CORPUS: "1"

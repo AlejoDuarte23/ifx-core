@@ -1,10 +1,6 @@
-// This Source Code Form is subject to the terms of the Mozilla Public
-// License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at https://mozilla.org/MPL/2.0/.
-
 use std::collections::BTreeSet;
 
-use ifc_lite_core::AttributeValue;
+use ifx_step::AttributeValue;
 
 use crate::{
     model::{SpatialData, SpatialNode},
@@ -202,19 +198,13 @@ impl SpatialBuilder<'_> {
         let mut stack = vec![root];
         let mut seen = BTreeSet::from([root]);
         while let Some(current) = stack.pop() {
-            for child in self
-                .relations
-                .aggregates
-                .get(&current)
-                .into_iter()
-                .flatten()
-            {
-                if seen.insert(*child) {
+            for child in self.semantic_children(current) {
+                if seen.insert(child) {
                     self.data
                         .element_to_storey
-                        .entry(*child)
+                        .entry(child)
                         .or_insert(storey_id);
-                    stack.push(*child);
+                    stack.push(child);
                 }
             }
         }
@@ -225,22 +215,34 @@ impl SpatialBuilder<'_> {
         let mut stack = vec![root];
         let mut seen = BTreeSet::from([root]);
         while let Some(current) = stack.pop() {
-            for child in self
-                .relations
-                .aggregates
-                .get(&current)
-                .into_iter()
-                .flatten()
-            {
-                if seen.insert(*child) {
+            for child in self.semantic_children(current) {
+                if seen.insert(child) {
                     self.data
                         .element_to_container
-                        .entry(*child)
+                        .entry(child)
                         .or_insert(container_id);
-                    stack.push(*child);
+                    stack.push(child);
                 }
             }
         }
+    }
+
+    fn semantic_children(&self, parent: u32) -> Vec<u32> {
+        let mut children = self
+            .relations
+            .aggregates
+            .get(&parent)
+            .cloned()
+            .unwrap_or_default();
+        children.extend(self.relations.voids.iter().filter_map(|relationship| {
+            (relationship.element_id == parent).then_some(relationship.opening_id)
+        }));
+        children.extend(self.relations.fills.iter().filter_map(|relationship| {
+            (relationship.opening_id == parent).then_some(relationship.filling_id)
+        }));
+        children.sort_unstable();
+        children.dedup();
+        children
     }
 
     fn storey_elevation(&self, record: &EntityRecord) -> Option<f64> {
